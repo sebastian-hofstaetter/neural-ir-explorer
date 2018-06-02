@@ -1,16 +1,21 @@
 import Vue from "vue";
-import HelloComponent from "./components/Hello.vue";
+import ExploreView from "./ExploreView.vue";
+import ExplorationSearch from "./components/ExplorationSearch.vue"
+import ConfigurationSelector from "./components/ConfigurationSelector.vue"
 
 let v = new Vue({
     el: "#app",
     template: `
     <div>
-        Name: <input v-model="name" type="text">
-        <hello-component :name="name" :initialEnthusiasm="5" />
+        <header>ir-explorer</header>
+        <explore-view />
     </div>
     `,
-    data: { name: "World" },
+    data: { name: "World" }, 
     components: {
-        HelloComponent
-    }
+        ExploreView,
+        //ExplorationSearch,
+        //ConfigurationSelector
+
+    },
 });

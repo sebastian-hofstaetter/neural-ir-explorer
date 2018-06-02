@@ -4,6 +4,7 @@
   "description": "Information retrieval search user interface",
   "main": "index.js",
   "scripts": {
+    "dev": "webpack-dev-server",
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,12 +12,17 @@
   "license": "Apache 2.0",
   "devDependencies": {
     "css-loader": "^0.28.11",
-    "ts-loader": "^4.3.0",
+    "ts-loader": "^4.3.1",
     "typescript": "^2.9.1",
     "vue": "^2.5.16",
     "vue-loader": "^15.2.4",
     "vue-template-compiler": "^2.5.16",
     "webpack": "^4.10.2",
-    "webpack-cli": "^3.0.0"
+    "webpack-cli": "^3.0.1",
+    "webpack-dev-server": "^3.1.4"
+  },
+  "dependencies": {
+    "@vue/cli": "^3.0.0-beta.15",
+    "axios": "^0.18.0"
   }
 }
