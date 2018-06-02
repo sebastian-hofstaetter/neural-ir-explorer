@@ -1,0 +1,22 @@
+{
+  "name": "ir-explorer",
+  "version": "1.0.0",
+  "description": "Information retrieval search user interface",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sebastian Hofstaetter",
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "css-loader": "^0.28.11",
+    "ts-loader": "^4.3.0",
+    "typescript": "^2.9.1",
+    "vue": "^2.5.16",
+    "vue-loader": "^15.2.4",
+    "vue-template-compiler": "^2.5.16",
+    "webpack": "^4.10.2",
+    "webpack-cli": "^3.0.0"
+  }
+}
