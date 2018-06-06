@@ -40,8 +40,11 @@ export default Vue.extend({
     });
 </script>
 
-<style>
+<style lang="scss">
+$color: red;
+
 .greeting {
+    color: $color;
     font-size: 20px;
 }
 </style>
