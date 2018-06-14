@@ -5,17 +5,22 @@
             <div class="config-header">#{{conf.id}} @ {{conf.basedOn.testCollection}}</div>
             <div class="param-selection">
                 <template v-for="(value, parameterName) in conf.basedOn.parameters">
-                    <div class="param-name" :key="parameterName">{{ parameterName }}</div>
-                    <div class="selection-wrapper" v-if="value.type == 0" :key="parameterName"> <!-- ConfigParameterType.Selection -->
+                    <div class="param-name" :key="conf.id+parameterName+'name'">{{ parameterName }}</div>
+                    <div class="selection-wrapper" v-if="value.type == 0" :key="conf.id+parameterName"> <!-- ConfigParameterType.Selection -->
                         <div v-for="option in value.valueRange" :key="option" 
                             v-bind:class="{ active: option == conf.parameters[parameterName].value }"
                             class="selection-option"
-                            @click="conf.parameters[parameterName].value = option">
+                            @click="conf.parameters[parameterName].value = option; indicateChange()">
                             {{option}}
                         </div>
                     </div> 
-                    <div class="number-wrapper" v-else :key="parameterName"> <!-- ConfigParameterType.Float or ConfigParameterType.Int-->
-                        <input v-model.number="conf.parameters[parameterName].value" type="number" step="0.01" :min="value.valueRange.from" :max="value.valueRange.to" />
+                    <div class="number-wrapper" v-else :key="conf.id+parameterName"> <!-- ConfigParameterType.Float or ConfigParameterType.Int-->
+                        <input v-model.number="conf.parameters[parameterName].value"
+                               @change="indicateChange()"
+                               type="number" 
+                               step="0.01" 
+                               :min="value.valueRange.from" 
+                               :max="value.valueRange.to" />
                         <div>Allowed: {{value.valueRange.from}} - {{value.valueRange.to}}</div>
                     </div>
                 </template>
@@ -88,6 +93,10 @@ export default Vue.extend({
       });
 
       this.compiledConfigurations.push(newConf);
+      this.indicateChange();
+    },
+    indicateChange(){
+      this.$emit("config-change", this.compiledConfigurations)
     }
   },
   created: function() {

@@ -7,8 +7,19 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './dist'),
     publicPath: '/dist/',
-    filename: 'build.js'
+    filename: 'build.js',
+    //code snippet from: https://www.mistergoodcat.com/post/the-joy-that-is-source-maps-with-vuejs-and-typescript
+    devtoolModuleFilenameTemplate: info => {
+      var $filename = 'sources://' + info.resourcePath;
+      if (info.resourcePath.match(/\.vue$/) && !info.query.match(/type=script/)) {
+        $filename = 'webpack-generated:///' + info.resourcePath + '?' + info.hash;
+      } 
+      return $filename;
+    },    
+    devtoolFallbackModuleFilenameTemplate: 'webpack:///[resource-path]?[hash]', 
+    
   },
+  mode:"development",
   module: {
     rules: [
       {
@@ -76,30 +87,30 @@ module.exports = {
   performance: {
     hints: false
   },
-  devtool: '#eval-source-map',
+  devtool: 'eval-source-map',
   plugins: [
     // make sure to include the plugin for the magic
     new VueLoaderPlugin()
   ]
 }
 
-if (process.env.NODE_ENV === 'production') {
-  module.exports.devtool = '#source-map'
-  // http://vue-loader.vuejs.org/en/workflow/production.html
-  module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"'
-      }
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      compress: {
-        warnings: false
-      }
-    }),
-    new webpack.LoaderOptionsPlugin({
-      minimize: true
-    })
-  ])
-}
+//if (process.env.NODE_ENV === 'production') {
+//  module.exports.devtool = '#source-map'
+//  // http://vue-loader.vuejs.org/en/workflow/production.html
+//  module.exports.plugins = (module.exports.plugins || []).concat([
+//    new webpack.DefinePlugin({
+//      'process.env': {
+//        NODE_ENV: '"production"'
+//      }
+//    }),
+//    new webpack.optimize.UglifyJsPlugin({
+//      sourceMap: true,
+//      compress: {
+//        warnings: false
+//      }
+//    }),
+//    new webpack.LoaderOptionsPlugin({
+//      minimize: true
+//    })
+//  ])
+//}
