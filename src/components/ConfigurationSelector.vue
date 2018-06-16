@@ -95,8 +95,8 @@ export default Vue.extend({
       this.compiledConfigurations.push(newConf);
       this.indicateChange();
     },
-    indicateChange(){
-      this.$emit("config-change", this.compiledConfigurations)
+    indicateChange() {
+      this.$emit("config-change", this.compiledConfigurations);
     }
   },
   created: function() {
@@ -113,6 +113,7 @@ export default Vue.extend({
 .config {
   width: 100%;
   background: #cccccc;
+  padding: 10px;
 
   .single-config {
     border: 1px solid #777777;
@@ -151,6 +152,7 @@ export default Vue.extend({
       }
       &.active {
         background: blueviolet;
+        color: white;
       }
     }
   }

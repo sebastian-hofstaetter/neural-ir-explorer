@@ -37,3 +37,20 @@ export interface SelectedConfiguration {
 //
 // retrieval results
 //
+
+export interface SearchResult {
+    basedOn:SelectedConfiguration;
+    preprocessingInfo:any;
+    results:ResultItem[];
+    totalFound:number
+}
+
+export interface ResultItem {
+    id:string;
+    title:string;
+    contents:string;
+
+    score:number;
+    explanation:string;
+}
+

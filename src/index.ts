@@ -1,7 +1,6 @@
 import Vue from "vue";
 import ExploreView from "./ExploreView.vue";
-import ExplorationSearch from "./components/ExplorationSearch.vue"
-import ConfigurationSelector from "./components/ConfigurationSelector.vue"
+import "./global-styles.scss"
 
 let v = new Vue({
     el: "#app",
@@ -11,11 +10,8 @@ let v = new Vue({
         <explore-view />
     </div>
     `,
-    data: { name: "World" }, 
     components: {
         ExploreView,
-        //ExplorationSearch,
-        //ConfigurationSelector
 
     },
 });
