@@ -26,7 +26,7 @@
                 </template>
             </div>
         </div>
-        <button @click="addNewCompiled()">Add new</button>
+        <button @click="addNewCompiled()"><i class="fas fa-plus"></i> New</button>
     </div>
 </template>
 

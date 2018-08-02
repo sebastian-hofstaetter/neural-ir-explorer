@@ -11,7 +11,9 @@
   "author": "Sebastian Hofstaetter",
   "license": "Apache 2.0",
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.2.0",
     "css-loader": "^0.28.11",
+    "file-loader": "^1.1.11",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.2",
     "ts-loader": "^4.3.1",

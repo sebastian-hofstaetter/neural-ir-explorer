@@ -1,6 +1,7 @@
 import Vue from "vue";
 import ExploreView from "./ExploreView.vue";
 import "./global-styles.scss"
+import '@fortawesome/fontawesome-free/css/all.css';
 
 let v = new Vue({
     el: "#app",
