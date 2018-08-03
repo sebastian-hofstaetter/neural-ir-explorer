@@ -7,7 +7,7 @@ let v = new Vue({
     el: "#app",
     template: `
     <div>
-        <header>ir-explorer</header>
+        <header><i class="fas fa-search"></i> ir-explorer</header>
         <explore-view />
     </div>
     `,

@@ -1,6 +1,6 @@
 <template>
     <div class="config">
-        <div class="config-title">Choose Configuration</div>
+        <div class="config-title">Configuration<span class="config-add" @click="addNewCompiled()"><i class="fas fa-plus"></i> Add</span></div>
         <div class="single-config" v-for="conf in compiledConfigurations" :key='conf.configId'>
             <div class="config-header">#{{conf.id}} @ {{conf.basedOn.testCollection}}</div>
             <div class="param-selection">
@@ -26,7 +26,6 @@
                 </template>
             </div>
         </div>
-        <button @click="addNewCompiled()"><i class="fas fa-plus"></i> New</button>
     </div>
 </template>
 
@@ -109,14 +108,30 @@ export default Vue.extend({
 <style lang="scss">
 .config-title {
   font-size: 15px;
+  padding: 5px 0;
 }
 .config {
-  width: 100%;
-  background: #cccccc;
+  background: #e4e4e4;
   padding: 10px;
-
+  .config-add {
+    &:hover {
+      .fas {
+        color: blueviolet;
+      }
+      color: black;
+    }
+    .fas {
+      color: #b56df9;
+    }
+    color: gray;
+    cursor: pointer;
+    padding: 4px;
+    border-left: 1px solid gray;
+    margin-left: 10px;
+    padding-left: 10px;
+  }
   .single-config {
-    border: 1px solid #777777;
+    border: 1px solid #c3c3c3;
     border-radius: 5px;
     display: inline-block;
     padding: 5px;
@@ -127,6 +142,7 @@ export default Vue.extend({
   .config-header {
     border-bottom: 1px solid #dddddd;
     margin-bottom: 12px;
+    padding-bottom: 5px;
   }
 
   .param-selection {

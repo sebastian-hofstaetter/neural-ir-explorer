@@ -1,6 +1,8 @@
 <template>
     <div class="search-area">
         <div class="search-bar">
+            <span class="search-title">Search</span>
+            <span class="sep"></span>
             <input placeholder="search query" v-model="query" @keyup.enter="search()" @change="search()" />
         </div>
         <div class="search-results">
@@ -25,69 +27,86 @@
 
 <script lang="ts">
 import Vue from "vue";
-import {
-  SearchResult,
-  ResultItem
-} from "../models";
+import { SearchResult, ResultItem } from "../models";
 
 export default Vue.extend({
-    props: ['selectedConfig'],
+  props: ["selectedConfig"],
 
-    data() {
-        var results:SearchResult[] =[]
-        return {
-            query:"",
-            results:results
+  data() {
+    var results: SearchResult[] = [];
+    return {
+      query: "",
+      results: results
+    };
+  },
+  methods: {
+    search() {
+      this.results = [];
+      for (var i = 0; i < this.selectedConfig.length; i++) {
+        var results: ResultItem[] = [];
+
+        for (var t = 0; t < 10; t++) {
+          results.push({
+            id: "doc:" + i + "-" + t,
+            title: "sample title",
+            contents: "full contents, might be longer",
+            score: 20 - t,
+            explanation: "score explanation .."
+          });
         }
-    },
-    methods: {
-        search() {
-            this.results=[];
-            for(var i = 0;i<this.selectedConfig.length;i++){
-                var results:ResultItem[]=[];
 
-                for(var t=0;t<10;t++){
-                    results.push({
-                        id:"doc:"+i+"-"+t,
-                        title:"sample title",
-                        contents:"full contents, might be longer",
-                        score:20-t,
-                        explanation:"score explanation .."
-                    })
-                }
-
-                var single:SearchResult={
-                    basedOn:this.selectedConfig[i],
-                    results:results,
-                    totalFound:20,
-                    preprocessingInfo:"query preprocessing info"
-                }
-                this.results.push(single);
-            }
-        },
+        var single: SearchResult = {
+          basedOn: this.selectedConfig[i],
+          results: results,
+          totalFound: 20,
+          preprocessingInfo: "query preprocessing info"
+        };
+        this.results.push(single);
+      }
     }
+  }
 });
 </script>
 
 <style lang="scss">
-.search-bar input {
-    margin: 10px auto;
-    display: block;
-    padding: 10px;
-    width: 300px;
+.search-area {
+  padding: 10px;
 }
-.single-result{
-    display: inline-block;
+.search-title {
+  display: inline-block;
+  font-size: 15px;
+  padding: 5px 0;
+}
+.sep {
+  border-right: 1px solid gray;
+  padding: 8px;
+  margin-right: 20px;
+}
+.search-bar input {
+  margin: 10px auto;
+  display: inline-block;
+  padding: 10px;
+  width: 300px;
+}
+.search-results {
+  //display: flex;
+  //justify-content: space-between;
+}
+.single-result {
+  display: inline-block;
+  width: 50%;
+  margin: auto;
+  max-width: 300px;
 
-    .total-found{
-        font-style: italic;
-        color:gray;
-    }
+  .total-found {
+    font-style: italic;
+    color: gray;
+  }
 
-    .doc{
-        border:1px solid gray;
-        border-radius: 4px;
-        margin: 4px;
-    }
+  .doc {
+    border: 1px solid gray;
+    border-radius: 4px;
+    margin: 4px;
+  }
 }
 </style>
