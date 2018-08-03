@@ -3,10 +3,11 @@
         <div class="search-bar">
             <span class="search-title">Search</span>
             <span class="sep"></span>
-            <input placeholder="search query" v-model="query" @keyup.enter="search()" @change="search()" />
+            <input placeholder="search query" v-model="query" @keyup.enter="search()"/>
         </div>
         <div class="search-results">
             <div class="single-result" v-for="(r,index) in results" :key="index">
+              <template v-if="r">
                 <div class="based-on">Conf: #{{r.basedOn.id}}</div>
                 <div class="preprocessing-info">{{r.preprocessingInfo}}</div>
                 <div class="total-found">Found: {{r.totalFound}}</div>
@@ -15,11 +16,12 @@
                         <div class="score">{{item.score}}</div>
                         <div class="id">{{item.id}}</div>
                         <div class="title">{{item.title}}</div>
-                        <div class="content">{{item.content}}</div>
+                        <div class="content">{{item.contents}}</div>
 
                     </div>
                 </div>
-
+              </template>
+              <div v-else>loading</div>
             </div>
         </div>
     </div>
@@ -27,41 +29,50 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { SearchResult, ResultItem } from "../models";
+import { SearchResult, ResultItem, SelectedConfiguration } from "../models";
+import FetchHelper from "../fetch-helper";
 
 export default Vue.extend({
-  props: ["selectedConfig"],
+  //props: ["selectedConfig"],
 
   data() {
     var results: SearchResult[] = [];
     return {
       query: "",
-      results: results
+      results: results,
+      selectedConfig: <SelectedConfiguration[]>[]
     };
+  },
+  created: function() {
+    this.$root.$on("config-change", (data: SelectedConfiguration[]) => {
+      this.selectedConfig = data;
+      if (this.query != "") {
+        this.search();
+      }
+    });
   },
   methods: {
     search() {
-      this.results = [];
-      for (var i = 0; i < this.selectedConfig.length; i++) {
-        var results: ResultItem[] = [];
+      this.results = new Array(this.selectedConfig.length);
 
-        for (var t = 0; t < 10; t++) {
-          results.push({
-            id: "doc:" + i + "-" + t,
-            title: "sample title",
-            contents: "full contents, might be longer",
-            score: 20 - t,
-            explanation: "score explanation .."
+      var searchRequest = (index: number) => {
+        fetch(this.selectedConfig[index].basedOn.server + "/search", {
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+          body: JSON.stringify(this.selectedConfig[index])
+        })
+          .then(FetchHelper.status)
+          .then(FetchHelper.json)
+          .then(data => {
+            this.$set(this.results, index, data);
+          })
+          .catch(error => {
+            console.log(error);
           });
-        }
+      };
 
-        var single: SearchResult = {
-          basedOn: this.selectedConfig[i],
-          results: results,
-          totalFound: 20,
-          preprocessingInfo: "query preprocessing info"
-        };
-        this.results.push(single);
+      for (var i = 0; i < this.selectedConfig.length; i++) {
+        searchRequest(i);
       }
     }
   }

@@ -1,8 +1,8 @@
 <template>
     <div>
-        <configuration-selector v-on:config-change="handleConfigChange" />
+        <configuration-selector />
 
-        <exploration-search v-bind:selected-config="compiledConfigurations" />
+        <exploration-search />
 
     </div>
 </template>
@@ -18,15 +18,10 @@ import {
 export default Vue.extend({
   //props: ['name', 'initialEnthusiasm'],
   data() {
-    var compiledConfigurations: SelectedConfiguration[] = [];
     return {
-      compiledConfigurations: compiledConfigurations
     };
   },
   methods: {
-    handleConfigChange(newConfig:SelectedConfiguration[]) {
-        this.compiledConfigurations = newConfig
-    },
   },
   components: {
     ExplorationSearch,

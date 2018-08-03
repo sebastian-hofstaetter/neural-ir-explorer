@@ -8,3 +8,21 @@ header{
     padding: 10px;
     font-weight: 500;
 }
+
+.taskbar-add-button {
+    &:hover {
+      .fas {
+        color: blueviolet;
+      }
+      color: black;
+    }
+    .fas {
+      color: #b56df9;
+    }
+    color: gray;
+    cursor: pointer;
+    padding: 4px;
+    border-left: 1px solid gray;
+    margin-left: 10px;
+    padding-left: 10px;
+}

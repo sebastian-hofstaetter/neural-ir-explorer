@@ -1,8 +1,8 @@
 <template>
     <div class="config">
-        <div class="config-title">Configuration<span class="config-add" @click="addNewCompiled()"><i class="fas fa-plus"></i> Add</span></div>
+        <div class="config-title">Configuration<span class="taskbar-add-button" @click="addNewCompiled()"><i class="fas fa-plus"></i> Add</span></div>
         <div class="single-config" v-for="conf in compiledConfigurations" :key='conf.configId'>
-            <div class="config-header">#{{conf.id}} @ {{conf.basedOn.testCollection}}</div>
+            <div class="config-header"><b>#{{conf.id}}</b> {{conf.basedOn.testCollection}} @ {{conf.basedOn.server}}</div>
             <div class="param-selection">
                 <template v-for="(value, parameterName) in conf.basedOn.parameters">
                     <div class="param-name" :key="conf.id+parameterName+'name'">{{ parameterName }}</div>
@@ -95,11 +95,16 @@ export default Vue.extend({
       this.indicateChange();
     },
     indicateChange() {
-      this.$emit("config-change", this.compiledConfigurations);
+      this.$root.$emit("config-change", this.compiledConfigurations);
     }
   },
   created: function() {
-    this.addNewCompiled();
+    this.$root.$on("server-change", (servers: AvailableConfiguration[]) => {
+      this.availableConfigurations = servers;
+      if (this.availableConfigurations.length == 1) {
+        this.addNewCompiled();
+      }
+    });
   },
   computed: {}
 });
@@ -113,23 +118,7 @@ export default Vue.extend({
 .config {
   background: #e4e4e4;
   padding: 10px;
-  .config-add {
-    &:hover {
-      .fas {
-        color: blueviolet;
-      }
-      color: black;
-    }
-    .fas {
-      color: #b56df9;
-    }
-    color: gray;
-    cursor: pointer;
-    padding: 4px;
-    border-left: 1px solid gray;
-    margin-left: 10px;
-    padding-left: 10px;
-  }
+
   .single-config {
     border: 1px solid #c3c3c3;
     border-radius: 5px;

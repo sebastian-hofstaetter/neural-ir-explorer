@@ -1,6 +1,7 @@
 var path = require('path')
 var webpack = require('webpack')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+var fs = require('fs');
 
 module.exports = {
   entry: './src/index.ts',
@@ -83,7 +84,22 @@ module.exports = {
   },
   devServer: {
     historyApiFallback: true,
-    noInfo: true
+    noInfo: true,
+    setup(app){
+
+      var bodyParser = require('body-parser');    
+      app.use(bodyParser.json());
+
+      app.post("/demo/search",  function(req, res){
+          var result = JSON.parse(fs.readFileSync("./demo/search").toString());
+          res.send(JSON.stringify({
+            basedOn:req.body,
+            preprocessingInfo:"n/a",
+            results:result,
+            totalFound:123
+          }));
+      })
+  }
   },
   performance: {
     hints: false
