@@ -4,25 +4,38 @@
             <span class="search-title">Search</span>
             <span class="sep"></span>
             <input placeholder="search query" v-model="query" @keyup.enter="search()"/>
+            <span class="sep"></span>
+            <span class="toggle-button" v-on:click="showAllContent=!showAllContent" v-bind:class="[showAllContent ? 'on' : 'off']"><i class="fas fa-align-left"></i> <span v-if="showAllContent">Show content</span> <span v-else>Hide content</span></span>
         </div>
-        <div class="search-results">
-            <div class="single-result" v-for="(r,index) in results" :key="index">
-              <template v-if="r">
-                <div class="based-on">Conf: #{{r.basedOn.id}}</div>
-                <div class="preprocessing-info">{{r.preprocessingInfo}}</div>
-                <div class="total-found">Found: {{r.totalFound}}</div>
-                <div class="documents">
-                    <div class="doc" v-for="item in r.results" :key="item.id">
-                        <div class="score">{{item.score}}</div>
-                        <div class="id">{{item.id}}</div>
-                        <div class="title">{{item.title}}</div>
-                        <div class="content">{{item.contents}}</div>
+        <div class="search-results" 
+             v-bind:style="{ 'grid-template-columns': '20px repeat('+results.length+', minmax(auto,300px))' }"
+             v-bind:class="[{ 'highlight-mode': highlightDoc }]">
 
-                    </div>
-                </div>
-              </template>
-              <div v-else>loading</div>
+            <div class="position-number" v-for="i in maxResultNumber" :key="'pos'+i"
+                 v-bind:style="{ 'grid-row': i + 1 }">
+                 {{i}}
             </div>
+
+            <template class="single-result" v-for="(r,index) in results" v-if="r">
+
+                <div class="conf-head" :key="r.basedOn.id + '-' + index" v-bind:style="{ 'grid-column': index + 2 }">
+                  <div class="top-row">
+                    <span class="based-on">#{{r.basedOn.id}}</span>
+                    <span class="total-found">Found: {{r.totalFound}}</span>
+                  </div>
+
+                  <div class="preprocessing-info">{{r.preprocessingInfo}}</div>
+                </div>
+
+                <div class="single-doc" v-for="(item,row) in r.results" :key="r.basedOn.id + '-' + item.id"
+                    v-bind:style="{ 'grid-column': index + 2, 'grid-row': row + 2 }"
+                    v-bind:class="[{ 'highlight-doc': highlightDoc && highlightDocId == item.id }]"
+                    v-on:click="toggleHighlight(item.id)">
+                    <span class="score">{{item.score}}</span> - <span class="id">{{item.id}}</span> - <span class="title">{{item.title}}</span>
+                    <div class="content" v-if="showAllContent || (highlightDoc && highlightDocId == item.id)">{{item.contents}}</div>
+                </div>
+
+            </template>
         </div>
     </div>
 </template>
@@ -40,7 +53,10 @@ export default Vue.extend({
     return {
       query: "",
       results: results,
-      selectedConfig: <SelectedConfiguration[]>[]
+      selectedConfig: <SelectedConfiguration[]>[],
+      showAllContent: true,
+      highlightDoc: false,
+      highlightDocId: ""
     };
   },
   created: function() {
@@ -74,6 +90,29 @@ export default Vue.extend({
       for (var i = 0; i < this.selectedConfig.length; i++) {
         searchRequest(i);
       }
+    },
+    toggleHighlight(id: string) {
+      if (this.highlightDocId == id) {
+        this.highlightDoc = false;
+        this.highlightDocId = "";
+      } else {
+        this.highlightDoc = true;
+        this.highlightDocId = id;
+      }
+    }
+  },
+  computed: {
+    maxResultNumber() {
+      var maxNum = 0;
+      for (let i = 0; i < this.results.length; i++) {
+        if (this.results[i]) {
+          const numResults = this.results[i].results.length;
+          if (numResults > maxNum) {
+            maxNum = numResults;
+          }
+        }
+      }
+      return maxNum;
     }
   }
 });
@@ -100,24 +139,56 @@ export default Vue.extend({
   width: 300px;
 }
 .search-results {
-  //display: flex;
-  //justify-content: space-between;
-}
-.single-result {
-  display: inline-block;
-  width: 50%;
-  margin: auto;
-  max-width: 300px;
+  display: grid;
+  grid-gap: 10px;
 
-  .total-found {
-    font-style: italic;
+  .position-number {
+    grid-column: 1;
+    text-align: center;
+    color: gray;
+    font-weight: bold;
+    border-top: 1px solid gray;
+  }
+  .conf-head {
+    grid-row: 1;
+    .based-on {
+      font-weight: bold;
+    }
+    .top-row {
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid blueviolet;
+    }
+    .total-found {
+      font-style: italic;
+      color: gray;
+    }
+  }
+  .single-doc {
+    .id {
+      font-weight: bold;
+    }
+  }
+  &.highlight-mode .single-doc{
+      color:#cccccc;
+  }
+  &.highlight-mode .single-doc.highlight-doc{
+      color:black;
+  }
+}
+.toggle-button {
+  cursor: pointer;
+  &.on {
+    color: black;
+  }
+  &.off {
     color: gray;
   }
-
-  .doc {
-    border: 1px solid gray;
-    border-radius: 4px;
-    margin: 4px;
+  &.on .fas {
+    color: blueviolet;
+  }
+  &.off .fas {
+    color: lavender;
   }
 }
 </style>
