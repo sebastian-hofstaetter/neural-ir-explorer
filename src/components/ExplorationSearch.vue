@@ -72,7 +72,7 @@ export default Vue.extend({
       this.results = new Array(this.selectedConfig.length);
 
       var searchRequest = (index: number) => {
-        fetch(this.selectedConfig[index].basedOn.server + "/search", {
+        fetch(this.selectedConfig[index].basedOn.server + "/search?query="+encodeURIComponent(this.query), {
           headers: { "Content-Type": "application/json" },
           method: "POST",
           body: JSON.stringify(this.selectedConfig[index])

@@ -1,16 +1,16 @@
 <template>
     <div>
-        <configuration-selector />
+        <query-cluster-list v-on:query-select="changeQuery" v-show="currentMainView == 'all-queries'"/>
 
-        <exploration-search />
+        <single-query-view v-on:back="currentMainView = 'all-queries'" v-show="currentMainView == 'single-query'" v-bind:query="currentSelectedQuery"/>
 
     </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import ExplorationSearch from "./components/ExplorationSearch.vue";
-import ConfigurationSelector from "./components/ConfigurationSelector.vue";
+import SingleQueryView from "./components/SingleQueryView.vue";
+import QueryClusterList from "./components/QueryClusterList.vue";
 import {
   SelectedConfiguration
 } from "./models";
@@ -19,22 +19,24 @@ export default Vue.extend({
   //props: ['name', 'initialEnthusiasm'],
   data() {
     return {
+      currentMainView:"all-queries",
+      currentSelectedQuery:""
     };
   },
   methods: {
+    changeQuery:function(qid:string){
+      this.currentMainView="single-query"
+      this.currentSelectedQuery = qid
+    }
   },
   components: {
-    ExplorationSearch,
-    ConfigurationSelector
+    SingleQueryView,
+    QueryClusterList
   }
 });
 </script>
 
 <style lang="scss">
-$color: red;
 
-.greeting {
-  color: $color;
-  font-size: 20px;
-}
+
 </style>

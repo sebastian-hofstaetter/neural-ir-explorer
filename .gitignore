@@ -3,3 +3,4 @@ dist
 package-lock.json
 .vscode/settings.json
 .vscode/launch.json
+*.pyc

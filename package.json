@@ -11,22 +11,22 @@
   "author": "Sebastian Hofstaetter",
   "license": "Apache 2.0",
   "devDependencies": {
-    "@fortawesome/fontawesome-free": "^5.2.0",
-    "css-loader": "^0.28.11",
-    "file-loader": "^1.1.11",
-    "node-sass": "^4.9.0",
-    "sass-loader": "^7.0.2",
-    "ts-loader": "^4.3.1",
-    "typescript": "^2.9.1",
-    "vue": "^2.5.16",
-    "vue-loader": "^15.2.4",
-    "vue-template-compiler": "^2.5.16",
-    "webpack": "^4.10.2",
-    "webpack-cli": "^3.0.1",
-    "webpack-dev-server": "^3.1.4"
+    "@fortawesome/fontawesome-free": "^5.10.1",
+    "css-loader": "^3.2.0",
+    "file-loader": "^4.2.0",
+    "node-sass": "^4.12.0",
+    "sass-loader": "^7.3.1",
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.3",
+    "vue": "^2.6.10",
+    "vue-loader": "^15.7.1",
+    "vue-template-compiler": "^2.6.10",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.7",
+    "webpack-dev-server": "^3.8.0"
   },
   "dependencies": {
-    "@vue/cli": "^3.0.0-beta.15",
-    "axios": "^0.18.0"
+    "@vue/cli": "^3.10.0",
+    "axios": "^0.19"
   }
 }
