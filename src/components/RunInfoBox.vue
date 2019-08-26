@@ -29,6 +29,7 @@ export default Vue.extend({
         .then(FetchHelper.json)
         .then(data => {
           this.availableRuns.push(data.runs);
+          this.$emit("run-changed",this.availableRuns[0])
         })
         .catch(error => {
           console.log(error);

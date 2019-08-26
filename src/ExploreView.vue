@@ -2,7 +2,7 @@
     <div>
         <query-cluster-list v-on:query-select="changeQuery" v-show="currentMainView == 'all-queries'"/>
 
-        <single-query-view v-on:back="currentMainView = 'all-queries'" v-show="currentMainView == 'single-query'" v-bind:query="currentSelectedQuery"/>
+        <single-query-view v-bind:run-info="runInfo" v-on:back="currentMainView = 'all-queries'" v-show="currentMainView == 'single-query'" v-bind:query="currentSelectedQuery"/>
 
     </div>
 </template>
@@ -16,7 +16,7 @@ import {
 } from "./models";
 
 export default Vue.extend({
-  //props: ['name', 'initialEnthusiasm'],
+  props: ['runInfo'],
   data() {
     return {
       currentMainView:"all-queries",

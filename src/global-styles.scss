@@ -12,7 +12,7 @@ header{
     top: 0;
     background: white;
     z-index: 100;
-    
+
     .inner-header{
       padding: 10px 40px;
       display: inline;
@@ -50,4 +50,134 @@ footer{
     border-left: 1px solid gray;
     margin-left: 10px;
     padding-left: 10px;
+}
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+
+// slider
+
+$radio-fill-color: blueviolet;
+$track-background: #c2c0c2;
+$track-height: 2px;
+$range-height: 13px;
+$range-width: 13px;
+
+.slider,
+.slider + .thumb {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+}
+
+.slider {
+    position: relative;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+// WebKit
+.slider {
+    -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-runnable-track {
+    height: $track-height;
+    background: $track-background;
+    border:none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: $range-height;
+    width: $range-width;
+    border-radius: 50%;
+    background-color: $radio-fill-color;
+    transform-origin: 50% 50%;
+    margin: -5px 0 0 0;
+    //transition: .3s;
+}
+
+// FireFox
+.slider {
+    /* fix for FF unable to apply focus style bug  */
+    border: 0px solid white;
+}
+
+.slider::-moz-range-track {
+    height: $track-height;
+    background: $track-background;
+    border: none;
+}
+
+.slider::-moz-range-thumb {
+    border: none;
+    height: $range-height;
+    width: $range-width;
+    border-radius: 50%;
+    background: $radio-fill-color;
+    margin-top: -5px;
+}
+
+// hide the outline behind the border
+.slider:-moz-focusring {
+    outline: 0px solid #fff;
+    outline-offset: 0px;
+}
+
+.slider:focus::-moz-range-track {
+    background: $track-background;
+}
+
+// IE 10+
+.slider::-ms-track {
+    height: $track-height;
+    // remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead
+    background: transparent;
+    // leave room for the larger thumb to overflow with a transparent border */
+    border-color: transparent;
+    border-width: 6px 0;
+    /*remove default tick marks*/
+    color: transparent;
+}
+
+.slider::-ms-fill-lower {
+    background: $track-background;
+}
+
+.slider::-ms-fill-upper {
+    background: $track-background;
+}
+
+.slider::-ms-thumb {
+    border: none;
+    height: $range-height;
+    width: $range-width;
+    border-radius: 50%;
+    background: $radio-fill-color;
+}
+
+.slider:focus::-ms-fill-lower {
+    background: $track-background;
+}
+
+.slider:focus::-ms-fill-upper {
+    background: $track-background;
 }
