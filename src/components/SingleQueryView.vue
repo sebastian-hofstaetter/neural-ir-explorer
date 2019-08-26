@@ -1,6 +1,17 @@
 <template>
     <div class="single-query-view">
         <div class="section-header">
+            <div class="cluster-card info-card" v-if="showInfoBox">
+              <div class="close-info" @click="showInfoBox=false"><i class="fas fa-times"></i></div>
+              <h1>Alright, now for the details 🔬</h1>
+              <p>Here is what you see around you and what you can do with it:
+                  <ul>
+                      <li>At the top you can select which query terms to highlight: we have two different styles: text-color and background color. (We like to use it to distinguish terms)</li>
+                      <li>There are two highlighting modes: vector-to-vector minimum similarity (with the slider) and per kernel (as the neural model sees the similarities)</li>
+                      <li></li>
+                  </ul>
+              </p>
+            </div>
             <span class="back-button" @click="goBack()"><i class="fa fa-chevron-left"></i> All queries</span>
             <div class="query">{{query.text}}</div>
             <div class="controls noselect">
@@ -25,11 +36,25 @@
                 </div>
             </div>
         </div>
-        <div class="document" v-for="(d,di) in documentData" :key="d.id">
-            <div class="head"><hr/><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span></div>
-            <div class="text">
-                <template v-for="(t,ti) in d.tokenized_document"><span :key="d.id + ti" v-bind:style="termStyle(di,ti)">{{t}}</span> <wbr :key="'br'+d.id + ti"/></template>
+        <div class="full-list" v-show="currentDisplayMode == 'list'">
+            <div class="document" v-for="(d,di) in documentData" :key="d.id">
+                <div class="head"><hr/><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span>
+                <a @click="addToCompare(di)">Compare</a>
+                </div>
+                <div class="text">
+                    <template v-for="(t,ti) in d.tokenized_document"><span :key="d.id + ti" v-bind:style="termStyle(documentData,di,ti)">{{t}}</span> <wbr :key="'br'+d.id + ti"/></template>
+                </div>
             </div>
+        </div>
+        <div class="side-by-side" v-show="currentDisplayMode == 'side-by-side'">
+            <div class="document" v-bind:class="{left: di == 0,right: di == 1}" v-for="(d,di) in comparing_documentData" :key="d.id">
+                <div class="head"><hr/><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span>
+                </div>
+                <div class="text">
+                    <template v-for="(t,ti) in d.tokenized_document"><span :key="d.id + ti" v-bind:style="termStyle(comparing_documentData,di,ti)">{{t}}</span> <wbr :key="'br'+d.id + ti"/></template>
+                </div>
+            </div>
+            <a @click="goToList()">Go back to all</a>
         </div>
     </div>
 </template>
@@ -44,18 +69,32 @@ export default Vue.extend({
     data() {
         return {
             documentData:<any[]>[],
+            comparing_documentData:<any[]>[],
             tokenized_query:<string[]>[],
             highlight_mode:'qt',
             qt_selected_indices:<any>{},
             qt_min_sim:40,
             qt_current_max:0,
             kernel_selected_indices:<any>{},
+            showInfoBox:true,
+            showInfoBoxModel:false,
+            currentDisplayMode:"list",
             color_palette:["rgb(44,8,69)", "rgb(91,131,19)", "rgb(37,36,249)", "rgb(182,96,30)", "rgb(132,56,186)", "rgb(31,68,7)", "rgb(222,31,138)", "rgb(29,134,109)", "rgb(223,51,64)", "rgb(19,51,70)", "rgb(122,10,24)", "rgb(22,125,187)", "rgb(176,94,112)", "rgb(69,111,231)", "rgb(90,49,0)", "rgb(208,3,214)", "rgb(114,121,110)"]//["#DB5461","#1A936F","#593C8F","#7A306C","#E16036","#171738",]
         }
     },
     methods: {
         goBack() { 
             this.$emit("back"); 
+        },
+        goToList(){
+            this.comparing_documentData.length=0
+                this.currentDisplayMode = "list"
+        },
+        addToCompare(didx:number){
+            this.comparing_documentData.push(this.documentData[didx]);
+            if(this.comparing_documentData.length == 2){
+                this.currentDisplayMode = "side-by-side"
+            }
         },
         toggle_highlight_mode(new_mode:string){
             this.highlight_mode = new_mode
@@ -90,7 +129,7 @@ export default Vue.extend({
                 return {"backgroundColor":this.color_palette[termIndex]}
             }
         },
-        termStyle(docIndex:number,termIndex:number){
+        termStyle(documentData:any,docIndex:number,termIndex:number){
             var output=<any>{
                 color:"black",
                 opacity:1
@@ -99,7 +138,7 @@ export default Vue.extend({
             if(this.highlight_mode=="qt"){
                 if(Object.keys(this.qt_selected_indices).length == 0) return output;
 
-                var matches = this.documentData[docIndex].matches[termIndex]
+                var matches = documentData[docIndex].matches[termIndex]
                 var max_val = 0
                 var max_index;
                 for(var index in this.qt_selected_indices){
@@ -122,7 +161,7 @@ export default Vue.extend({
             }else if(this.highlight_mode=="kernel"){
                 if(Object.keys(this.kernel_selected_indices).length == 0) return output;
 
-                var matches = this.documentData[docIndex].matches_per_kernel[termIndex]
+                var matches = documentData[docIndex].matches_per_kernel[termIndex]
                 var max_val = 0
                 var max_index;
                 for(var q_index in this.qt_selected_indices){
@@ -135,7 +174,7 @@ export default Vue.extend({
                     }
                 }
 
-                if(max_val > 0.1){
+                if(max_val > 0.02){
                     output.color="white"
                     output["backgroundColor"] = this.color_palette[<number><unknown>max_index]
                 }
@@ -151,6 +190,8 @@ export default Vue.extend({
                 this.qt_selected_indices = {}
                 this.kernel_selected_indices = {2:1}
                 this.documentData.length = 0
+                this.comparing_documentData.length = 0
+                this.currentDisplayMode = "list"
                 fetch("/query/"+newVal.qid)
                     .then(FetchHelper.status)
                     .then(FetchHelper.json)
@@ -186,7 +227,7 @@ export default Vue.extend({
     .section-header{
         position: fixed;
         background: white;
-        top: 45px;
+        top: 47px;
         padding:10px;
         z-index: 100;
         width: 600px;
@@ -194,6 +235,18 @@ export default Vue.extend({
             display: inline;
             font-weight: 500;
             margin:20px;
+        }
+        .cluster-card{
+            position: absolute;
+            right: 100%;
+            margin-top: 0;
+            margin-right: 20px;
+            display: inline-block;
+            border: 1px solid #d5d5d5;
+            border-radius: 2px;
+            box-shadow: 2px 2px 8px #e6e6e6;
+            padding: 10px;
+            width: 400px;
         }
     }
     .controls{
@@ -210,7 +263,7 @@ export default Vue.extend({
                 height: 20px;
                 color: gray;
                 top: 20px;
-                margin-left: -11px;
+                margin-left: -9px;
                 display: block;
             }
         }
@@ -305,6 +358,10 @@ export default Vue.extend({
                 text-align: center;
                 font-weight:500;
             }
+            .kernel-value.selected{
+                font-weight: 500;
+                text-decoration: underline;
+            }
         }
         .text{
             text-align:justify; 
@@ -312,6 +369,43 @@ export default Vue.extend({
                 padding:0 2px;
                 margin:0 1px;
                 border-radius:2px
+            }
+        }
+    }
+    .side-by-side{
+        width: 1200px;
+        margin-left: -300px;
+        text-align: center;
+        a{
+            display: inline-block;
+            text-align: center;
+            margin: 20px;
+            cursor: pointer;
+        }
+        .document{
+            display: inline-block;
+            width: 590px;
+            vertical-align: top;
+
+            &.left{
+                .text{
+                    margin-right: 180px;
+                }
+                .head{
+                    float: right;
+                    width: 100px;
+                    text-align: left;
+                }
+            }
+            &.right{
+                .text{
+                    margin-left: 180px;
+                }
+                .head{
+                    float: left;
+                    width: 100px;
+                    text-align: left;
+                }
             }
         }
     }

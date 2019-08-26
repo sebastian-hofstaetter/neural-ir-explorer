@@ -15,8 +15,10 @@ header{
 
     .inner-header{
       padding: 10px 40px;
-      display: inline;
+      padding-top: 0;
+      display: inline-block;
       border-bottom: 1px solid gray;
+      min-width: 520px;
     }
 }
 
@@ -34,23 +36,32 @@ footer{
   }
 }
 
-.taskbar-add-button {
-    &:hover {
-      .fas {
-        color: blueviolet;
-      }
-      color: black;
+.info-card{
+  position: relative;
+  h1{
+    text-align: center;
+    font-weight: 500;
+  }
+    ul{
+        padding-left: 20px;
+        li{
+          margin-bottom: 10px;
+        }
     }
-    .fas {
-      color: #b56df9;
-    }
+  .close-info{
+    position: absolute;
+    right: 0px;
+    top: 0px;
     color: gray;
     cursor: pointer;
-    padding: 4px;
-    border-left: 1px solid gray;
-    margin-left: 10px;
-    padding-left: 10px;
+    padding: 10px;
+    padding-top: 7px;
+    &:hover{
+        color:black;
+    }
+  }
 }
+
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */

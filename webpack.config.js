@@ -47,7 +47,11 @@ module.exports = {
         }
       },
       {
-        test: /\.(png|jpe|jpg|gif|woff|woff2|eot|ttf|svg)(\?.*$|$)/,
+        test: /\.svg$/,
+        loader: 'vue-svg-loader',
+      },
+      {
+        test: /\.(png|jpe|jpg|gif|woff|woff2|eot|ttf)(\?.*$|$)/,
         loader: 'file-loader',
         options: {
           name: '[name].[ext]?[hash]'

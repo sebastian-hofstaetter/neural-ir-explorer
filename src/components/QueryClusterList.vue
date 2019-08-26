@@ -36,9 +36,15 @@
     <div class="cluster-list">
       <div class="cluster-card info-card" v-if="showInfoBox">
           <div class="close-info" @click="showInfoBox=false"><i class="fas fa-times"></i></div>
-          <h1>Hi there 👋!</h1>
-          <p>Welcome to the neural-ir-explorer!
-             
+          <h1>Let's start exploring 🎉</h1>
+          <p>Here is what you see around you and what you can do with it:
+              <ul>
+                  <li>At the top you can sort the queries: randomly, ascending or descending (based on the rank of the first relevant document). You can also expand the clusters to see all queries.</li>
+                  <li>We clustered the queries based on their mean contextualized encoding. Each card holds the queries for a cluster.</li>
+                  <li>At the top of each card is: the median best rank of the neural model, the difference to the first-stage baseline, and a manual summary of the queries in that cluster</li>
+                  <li>Each query line contains: the best rank of the neural model, the difference to the first-stage baseline, and the query text</li>
+                  <li>Simply click on a query to go to the result view - for much more details on the query result</li>
+              </ul>
           </p>
       </div>
       <div class="cluster-card" v-for="c in clusters" :key="c.id">
@@ -187,7 +193,7 @@ export default Vue.extend({
   background: white;
   text-align: center;
   position: fixed;
-  top: 45px;
+  top: 47px;
   left: 0;
   right: 0;
   z-index: 100;
@@ -224,22 +230,7 @@ export default Vue.extend({
   margin: 50px;
   margin-bottom: 10px;
 
-  .info-card{
-      position: relative;
-
-      .close-info{
-        position: absolute;
-        right: 0px;
-        top: 0px;
-        color: gray;
-        cursor: pointer;
-        padding: 10px;
-        padding-top: 7px;
-        &:hover{
-            color:black;
-        }
-      }
-   }
+  
   .cluster-card {
     display: inline-block;
     border: 1px solid #d5d5d5;
