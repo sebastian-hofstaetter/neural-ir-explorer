@@ -18,7 +18,7 @@ let v = new Vue({
     data(){
         return {
             currentRun:{},
-            currentMainView:"explore",
+            currentMainView:"splash",
         }
     },
     components: {

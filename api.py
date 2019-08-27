@@ -21,13 +21,29 @@ paths={
                 "model_info":"TK using 2 Transformer layers",
                 "score_type":"kernel",
                 "kernels_mus":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1, -0.3, -0.5, -0.7, -0.9],
-                "cluster_info_text":"this is tk - hello world!"},
+                "kernels_mus":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1],
+                "rest-kernels-last":4},
     "secondary-output":"C:\\Users\\sebas\\data\\\wsdm20\\secondary-end-top1000.npz",
     "cluster-stats":"C:\\Users\\sebas\\data\\\wsdm20\\analysis\\clustering_statistics.csv",
     "qrels":"C:\\Users\\sebas\\data\\msmarco\\qrels.dev.tsv"
 }
 max_doc_char_length = 100_000
 
+def load_qrels(path):
+    with open(path,'r') as f:
+        qids_to_relevant_passageids = {}
+        for l in f:
+            try:
+                l = l.strip().split()
+                qid = l[0]
+                if qid not in qids_to_relevant_passageids:
+                    qids_to_relevant_passageids[qid] = []
+                qids_to_relevant_passageids[qid].append(l[2].strip())
+            except:
+                raise IOError('\"%s\" is not valid format' % l)
+        return qids_to_relevant_passageids
+
+qrels = load_qrels(paths["qrels"])
 
 with open(paths["cluster-stats"],"r") as csv_file:
     cluster_csv = csv.DictReader(csv_file)
@@ -98,12 +114,13 @@ def query(qid):
 #
 tokenizer = BlingFireTokenizer()
 
-def analyze_weighted_param_1D(name,values, param_weight,bias=None,after_x=5):
+def analyze_weighted_param_1D(name,values, param_weight,bias=None,last_x=5):
     #print(name, ": value * weight + bias")
     rolling_sum = 0
     rolling_sum_after_x = 0
 
     kernels = {}
+    after_x = len(values) - last_x
 
     for i,val in enumerate(values):
         param = param_weight[i]
@@ -126,15 +143,16 @@ def analyze_weighted_param_1D(name,values, param_weight,bias=None,after_x=5):
     #print("-----------")
     if bias != None:
         rolling_sum = rolling_sum + bias
-    return (kernels, float(rolling_sum))
+        rolling_sum_after_x = rolling_sum_after_x + bias
+    return (kernels, float(rolling_sum),float(rolling_sum_after_x))
 
 
 def get_document_info(qid,did,secondary_info):
 
-    document_info = {"id":float(did),"score":float(secondary_info["score"])}
+    document_info = {"id":float(did),"score":float(secondary_info["score"]),"judged_relevant": did in qrels[qid]}
 
-    document_info["val_log"] = analyze_weighted_param_1D("log-kernels",secondary_info["per_kernel"],secondary_model["dense_weight"][0])
-    document_info["val_len"] = analyze_weighted_param_1D("len-norm-kernels",secondary_info["per_kernel_mean"],secondary_model["dense_mean_weight"][0])
+    document_info["val_log"] = analyze_weighted_param_1D("log-kernels",secondary_info["per_kernel"],secondary_model["dense_weight"][0],last_x=paths["run-info"]["rest-kernels-last"])
+    document_info["val_len"] = analyze_weighted_param_1D("len-norm-kernels",secondary_info["per_kernel_mean"],secondary_model["dense_mean_weight"][0],last_x=paths["run-info"]["rest-kernels-last"])
 
     document_info["tokenized_query"] = tokenizer.tokenize(queries[qid])
     document_info["tokenized_document"] = tokenizer.tokenize(collection[did])

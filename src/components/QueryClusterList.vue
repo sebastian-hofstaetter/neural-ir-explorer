@@ -28,7 +28,7 @@
           <i class="fas fa-tasks"></i> Collaps clusters
         </div>
         <div class="control-bar-element">
-          <input placeholder="Prefix filter" />
+          <input class="prefix-filter" v-bind:class="{selected: prefixInput.length > 0}" v-model="prefixInput" placeholder="Prefix filter" />
         </div>
       </div>
     </div>
@@ -47,14 +47,14 @@
               </ul>
           </p>
       </div>
-      <div class="cluster-card" v-for="c in clusters" :key="c.id">
+      <div class="cluster-card" v-for="c in filteredClusters" :key="c.cluster">
         <div class="cluster-info">
-          <span class="score">{{parseInt(c.data.tk_med)}}</span>
-          <up-down-score v-bind:score2="c.data.tk_med" v-bind:score1="c.data.bm25_med" />
-          <span class="summary">{{c.data.summary}}</span>
+          <span class="score">{{parseInt(c.tk_med)}}</span>
+          <up-down-score v-bind:score2="c.tk_med" v-bind:score1="c.bm25_med" />
+          <span class="summary">{{c.summary}}</span>
         </div>
           
-        <template v-for="q in filterCollapsed(c.data.queries,c.id)" >
+        <template v-for="q in c.queries" >
             <div
               class="query"
               :key="q.qid"
@@ -64,8 +64,8 @@
                 <span class="text">{{q.text}}</span>
             </div><br :key="q.qid+'br'"/>
         </template>
-        <div class="more-queries" v-show="c.data.queries.length-maxCollapsCountPerCluster[c.id] > 0" @click="toggleSingleCollapsesCluster(c.id,c.data.queries.length+1)">
-            + {{c.data.queries.length-maxCollapsCountPerCluster[c.id]}} more queries
+        <div class="more-queries" v-show="c.overflowCount > 0" @click="toggleSingleCollapsesCluster(c.cluster,1000)">
+            + {{c.overflowCount}} more queries (click to expand)
         </div>
       </div>
     </div>
@@ -82,6 +82,7 @@ import {
 import UpDownScore from "./UpDownScore.vue";
 
 import FetchHelper from "../fetch-helper";
+import Triejs from "../lib/trie";
 
 /**
  * From: https://stackoverflow.com/a/6274381
@@ -106,12 +107,16 @@ export default Vue.extend({
     return {
       //availableConfigurations: availableConfigurations,
       clusters: clusters,
+      filteredClusters:[],
       sortBy: "rand", // or "asc"
       prefixFilter: "",
       collapsAll: true,
       maxCollapsCount: 10,
       maxCollapsCountPerCluster:<any>{},
-      showInfoBox:true
+      showInfoBox:true,
+      searchTrie:new Triejs({enableCache:false,maxCache:5000}),
+      searchFiltered:new Set(),
+      prefixInput:""
     };
   },
   methods: {
@@ -119,7 +124,8 @@ export default Vue.extend({
       this.$emit("query-select", q);
     },
     toggleSingleCollapsesCluster(cluster:any,val:number){
-        this.$set(this.maxCollapsCountPerCluster,cluster,val);
+        this.maxCollapsCountPerCluster[cluster] = val;
+        this.filterCollapsed();
         this.$forceUpdate()
     },
     shuffleAll(){
@@ -127,6 +133,7 @@ export default Vue.extend({
             shuffle(this.clusters[cid].data.queries)
         }
         shuffle(this.clusters)
+        this.filterCollapsed();
         this.$forceUpdate();
     },
     sortAll(){
@@ -150,11 +157,34 @@ export default Vue.extend({
             this.clusters[cid].data.queries.sort(compareQueries)
         }
         this.clusters.sort(compareCluster);
+        this.filterCollapsed();
         this.$forceUpdate();
     },
-    filterCollapsed(queries: any[],clusterId:string) {
-      if (this.collapsAll == false) return queries;
-      return queries.slice(0, this.maxCollapsCountPerCluster[clusterId]);
+    filterCollapsed() {
+      this.filteredClusters.length=0
+      for(var c = 0;c<this.clusters.length;c++){
+        var overflowCount = 0
+        var queries = this.clusters[c].data.queries;
+        if (this.searchFiltered.size > 0){
+            var filteredqs = []
+            for(var i=0;i<queries.length;i++){
+                if(this.searchFiltered.has(queries[i].qid)){
+                    filteredqs.push(queries[i])
+                }
+            }
+            queries = filteredqs
+        }
+        if (this.collapsAll == true){
+            overflowCount = queries.length - this.maxCollapsCountPerCluster[this.clusters[c].id]
+            queries = queries.slice(0, this.maxCollapsCountPerCluster[this.clusters[c].id]);
+        } 
+        if (queries.length > 0){
+            var filC = {...this.clusters[c].data}
+            filC.queries = queries
+            filC.overflowCount = overflowCount
+            this.filteredClusters.push(filC)
+        }
+      }
     }
   },
   created: function() {
@@ -165,7 +195,16 @@ export default Vue.extend({
         for (var cid in data.clusters) {
           this.maxCollapsCountPerCluster[cid] = this.maxCollapsCount;
           this.clusters.push({ id: cid, data: data.clusters[cid] });
+          var queries = data.clusters[cid].queries
+          for(var i=0;i<queries.length;i++){
+            var current_q = queries[i];
+            var current_q_text = queries[i].text.split(" ");
+            for(var t=0;t<current_q_text.length;t++){
+                this.searchTrie.add(current_q_text[t],current_q.qid)
+            }
+          }
         }
+        this.filterCollapsed();
       })
       .catch(error => {
         console.log(error);
@@ -178,7 +217,22 @@ export default Vue.extend({
       // }
     });
   },
-  computed: {},
+  watch: {
+      prefixInput:function(newVal:string,oldVal:string) {
+          if(newVal.length>1){
+              this.searchFiltered = new Set(this.searchTrie.find(newVal));
+          }
+          else{
+            this.searchFiltered = new Set();
+          }
+          this.filterCollapsed();  
+          this.$forceUpdate();
+      },
+      collapsAll:function(newVal:boolean,oldVal:boolean) {
+          this.filterCollapsed();  
+          this.$forceUpdate();
+      }
+  },
   components: {
     UpDownScore
   }
@@ -201,6 +255,16 @@ export default Vue.extend({
 .cluster-controls {
   padding: 10px;
 
+  .prefix-filter{
+    border: 0;
+    border-bottom: 2px solid #c7c7c7;
+    padding: 5px;
+    outline: 0;
+    &:focus, &.selected{
+    border-bottom: 2px solid blueviolet;
+
+    }
+  }
   .control-bar-element {
     display: inline;
     margin: 10px;

@@ -2,7 +2,7 @@
     "compilerOptions": {
         "outDir": "./built/",
         "sourceMap": true,
-        "strict": true,
+        "strict": false,
         "module": "es2015",
         "moduleResolution": "node",
         "target": "es5",

@@ -24,13 +24,20 @@
       <div class="splash-card" v-if="currentScreenIdx==1">
         <h2>TK: The Transformer-Kernel Model</h2>
         <p>
-          
-
+          Search engines operate under a strict time constraint as a fast response is paramount to user satisfaction. Thus, neural re-ranking models have a limited time-budget to re-rank documents. 
+          Given the same amount of time, a faster re-ranking model can incorporate more documents than a less efficient one, leading to a higher effectiveness. 
+          To utilize this property, we propose TK (Transformer-Kernel): a neural re-ranking model for ad-hoc search using an efficient contextualization mechanism. 
+          TK employs a very small number of Transformer layers (up to three) to contextualize query and document word embeddings. 
+          To score individual term interactions, we use a document-length enhanced kernel-pooling, which enables users to gain insight into the model. 
+          TK offers an optimal ratio between effectiveness and efficiency: under realistic time constraints (maximum of 200 ms per query) TK achieves the highest effectiveness in comparison to BERT and other re-ranking models.
+          The Neural-IR-Explorer is meant to complement metrics based results found in the TK paper <a target="blank" href="https://arxiv.org">on arXiv</a> (there is also a cool time-budget aware evaluation of neural IR models in there 👌)</p>
+        
         </p>
         <TkArchitecture class="tk-arch" />
         <span class="fig-caption">Figure 2: TK model overview</span>
-        <p> The Neural-IR-Explorer is meant to complement metrics based results found in the TK paper <a target="blank" href="https://arxiv.org">on arXiv</a> (there is also a cool time-budget aware evaluation of neural IR models in there 👌)</p>
-        
+        <p>We employ a small number of Transformer layers (we evaluate up to three) to contextualize query and document word embeddings.
+           We score the interactions of the contextualized representations with simple, yet effective soft-histograms based on the kernel-pooling technique. 
+           Additionally, we enhance kernel-pooling with document length normalization.
         <div><span class="next-button" @click="$emit('all-done')">Let's go!</span></div>
       </div>
 
@@ -131,6 +138,7 @@ export default Vue.extend({
 .tk-arch{
       margin-left: -150px;
     margin-bottom: -55px;
+        margin-top: -45px;
   .st1 {fill:#f2f2f2;stroke:none;stroke-width:0.25}
 		.st2 {fill:#90aadb;fill-opacity:0.17;stroke:#305497;stroke-dasharray:0.01,2.5;stroke-width:0.5}
 		.st3 {fill:#f2f2f2;fill-opacity:0.17;stroke:#7f7f7f;stroke-dasharray:3.5,2.5;stroke-width:0.5}

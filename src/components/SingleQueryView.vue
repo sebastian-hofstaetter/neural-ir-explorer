@@ -1,6 +1,6 @@
 <template>
-    <div class="single-query-view">
-        <div class="section-header">
+    <div class="single-query-view" v-bind:style="{paddingTop: headerHeight+'px'}">
+        <div class="section-header" ref="header">
             <div class="cluster-card info-card" v-if="showInfoBox">
               <div class="close-info" @click="showInfoBox=false"><i class="fas fa-times"></i></div>
               <h1>Alright, now for the details 🔬</h1>
@@ -17,9 +17,10 @@
             <div class="controls noselect">
                 <div class="line">
                     <div class="label">Query terms</div>
-                    <div class="terms"><span v-for="(tq,tqi) in tokenized_query" :key="'qt'+tqi" 
+                    <div class="terms">
+                        <template  v-for="(tq,tqi) in tokenized_query"><span :key="'qt'+tqi" 
                     v-bind:class="{selected1:tqi in qt_selected_indices && qt_selected_indices[tqi]==1,selected2:tqi in qt_selected_indices && qt_selected_indices[tqi]==2}" 
-                    v-bind:style="controlTermStyle(tqi)" @click="qt_toggle_term(tqi)">{{tq}}&#8203;</span></div>
+                    v-bind:style="controlTermStyle(tqi)" @click="qt_toggle_term(tqi)">{{tq}}</span>  <wbr :key="'qtbr'+tqi"/></template></div>
                 </div>
                 <div class="line">
                     <div class="part-line" v-bind:class="{selected:highlight_mode == 'qt'}">
@@ -31,14 +32,14 @@
                     <div class="part-line" v-bind:class="{selected:highlight_mode == 'kernel'}">
                         <div class="shadow" @click="toggle_highlight_mode('kernel')"></div>
                         <div class="label">Kernels</div>
-                        <div class="kernels"><span v-for="(k,ki) in runInfo.kernels_mus" :key="'k'+ki" v-bind:class="{selected:highlight_mode == 'kernel' && ki in kernel_selected_indices}" @click="kernel_toggle_kernel(ki)">{{k}}&#8203;</span></div>
+                        <div class="kernels"><span v-for="(k,ki) in runInfo.kernels_mus_display" :key="'k'+ki" v-bind:class="{selected:highlight_mode == 'kernel' && ki in kernel_selected_indices}" @click="kernel_toggle_kernel(ki)">{{k}}&#8203;</span></div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="full-list" v-show="currentDisplayMode == 'list'">
             <div class="document" v-for="(d,di) in documentData" :key="d.id">
-                <div class="head"><hr/><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span>
+                <div class="head"><hr/><span v-bind:style="{display: d.judged_relevant ? 'inline-block': 'none'}">⭐</span><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span> Rest: {{d.val_log[2].toFixed(2)}}
                 <a @click="addToCompare(di)">Compare</a>
                 </div>
                 <div class="text">
@@ -48,7 +49,7 @@
         </div>
         <div class="side-by-side" v-show="currentDisplayMode == 'side-by-side'">
             <div class="document" v-bind:class="{left: di == 0,right: di == 1}" v-for="(d,di) in comparing_documentData" :key="d.id">
-                <div class="head"><hr/><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span>
+                <div class="head"><hr/><span v-bind:style="{display: d.judged_relevant ? 'inline-block': 'none'}">⭐</span><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span>
                 </div>
                 <div class="text">
                     <template v-for="(t,ti) in d.tokenized_document"><span :key="d.id + ti" v-bind:style="termStyle(comparing_documentData,di,ti)">{{t}}</span> <wbr :key="'br'+d.id + ti"/></template>
@@ -68,6 +69,7 @@ export default Vue.extend({
     props: ['query',"runInfo"],
     data() {
         return {
+            headerHeight:0,
             documentData:<any[]>[],
             comparing_documentData:<any[]>[],
             tokenized_query:<string[]>[],
@@ -94,6 +96,7 @@ export default Vue.extend({
             this.comparing_documentData.push(this.documentData[didx]);
             if(this.comparing_documentData.length == 2){
                 this.currentDisplayMode = "side-by-side"
+                this.showInfoBox=false
             }
         },
         toggle_highlight_mode(new_mode:string){
@@ -175,8 +178,14 @@ export default Vue.extend({
                 }
 
                 if(max_val > 0.02){
-                    output.color="white"
-                    output["backgroundColor"] = this.color_palette[<number><unknown>max_index]
+                    if(this.qt_selected_indices[<number><unknown>max_index]==2){
+                        output.color="white"
+                        mainKey = "backgroundColor"
+                    }
+                    output[mainKey] = this.color_palette[<number><unknown>max_index]
+
+                    //output.color="white"
+                    //output["backgroundColor"] = this.color_palette[<number><unknown>max_index]
                 }
                 output.opacity = max_val /// this.qt_current_max
                 return output
@@ -205,6 +214,10 @@ export default Vue.extend({
                       for(var i=0;i<this.tokenized_query.length;i++){
                             this.qt_selected_indices[i] = stopword_selection.findIndex((x) => x == this.tokenized_query[i]) == -1 ? 2 : 1
                       }
+                      requestAnimationFrame(()=>{
+                          this.headerHeight = this.$refs.header.clientHeight
+                          this.$forceUpdate();
+                      })
                     })
                     .catch(error => {
                       console.log(error);
@@ -326,6 +339,7 @@ export default Vue.extend({
         }
         .terms{
             display: inline-block;
+            line-height: 32px;
         }
         .terms span{
             cursor: pointer;
