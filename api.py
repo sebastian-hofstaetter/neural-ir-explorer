@@ -21,7 +21,7 @@ paths={
                 "model_info":"TK using 2 Transformer layers",
                 "score_type":"kernel",
                 "kernels_mus":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1, -0.3, -0.5, -0.7, -0.9],
-                "kernels_mus":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1],
+                "kernels_mus_display":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1],
                 "rest-kernels-last":4},
     "secondary-output":"C:\\Users\\sebas\\data\\\wsdm20\\secondary-end-top1000.npz",
     "cluster-stats":"C:\\Users\\sebas\\data\\\wsdm20\\analysis\\clustering_statistics.csv",
@@ -75,6 +75,8 @@ secondary = numpy.load(paths["secondary-output"])
 secondary_model = secondary.get("model_data")[()]
 secondary_qd = secondary.get("qd_data")[()]
 
+paths["run-info"]["model_weights_log_len_mix"] = secondary_model["dense_comb_weight"][0].tolist()
+
 #
 # api endpoints
 #
@@ -124,8 +126,8 @@ def analyze_weighted_param_1D(name,values, param_weight,bias=None,last_x=5):
 
     for i,val in enumerate(values):
         param = param_weight[i]
-
-        kernels[i] = (float(val),float(param))
+        if i < after_x:
+            kernels[i] = (float(val),float(param))
         #print("["+str(i)+"]", str(val) + " * "+str(param) + " = "+ str(val*param))
         rolling_sum += val*param
 

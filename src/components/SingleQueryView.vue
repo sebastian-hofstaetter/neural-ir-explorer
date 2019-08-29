@@ -6,23 +6,21 @@
               <h1>Alright, now for the details 🔬</h1>
               <p>Here is what you see around you and what you can do with it:
                   <ul>
-                      <li>At the top you can select which query terms to highlight: we have two different styles: text-color and background color. (We like to use it to distinguish terms)</li>
+                      <li>At the top you can select which query terms to highlight: we have two different styles: text-color and background color. (We use it to focus on specific terms)</li>
                       <li>There are two highlighting modes: vector-to-vector minimum similarity (with the slider) and per kernel (as the neural model sees the similarities)</li>
-                      <li></li>
+                      <li>Compare two documents side-by-side by selecting them with the compare button <i class="far fa-clone"></i></li>
                   </ul>
               </p>
             </div>
-            <span class="back-button" @click="goBack()"><i class="fa fa-chevron-left"></i> All queries</span>
-            <div class="query">{{query.text}}</div>
             <div class="controls noselect">
                 <div class="line">
-                    <div class="label">Query terms</div>
+                    <span class="back-button" @click="goBack()"><i class="fa fa-chevron-left"></i></span>
                     <div class="terms">
                         <template  v-for="(tq,tqi) in tokenized_query"><span :key="'qt'+tqi" 
                     v-bind:class="{selected1:tqi in qt_selected_indices && qt_selected_indices[tqi]==1,selected2:tqi in qt_selected_indices && qt_selected_indices[tqi]==2}" 
                     v-bind:style="controlTermStyle(tqi)" @click="qt_toggle_term(tqi)">{{tq}}</span>  <wbr :key="'qtbr'+tqi"/></template></div>
                 </div>
-                <div class="line">
+                <div class="line center">
                     <div class="part-line" v-bind:class="{selected:highlight_mode == 'qt'}">
                         <div class="shadow" @click="toggle_highlight_mode('qt')"></div>
                         <div class="label">Min. similarity</div>
@@ -35,21 +33,34 @@
                         <div class="kernels"><span v-for="(k,ki) in runInfo.kernels_mus_display" :key="'k'+ki" v-bind:class="{selected:highlight_mode == 'kernel' && ki in kernel_selected_indices}" @click="kernel_toggle_kernel(ki)">{{k}}&#8203;</span></div>
                     </div>
                 </div>
+                <div class="line heading" v-if="currentDisplayMode == 'list' && runInfo.kernels_mus_display != undefined">
+                    <span class="rank">Rank</span>
+                    <span class="main-score">Score (length & log)</span>
+                    <span class="kernels">Log-Kernel scores: <span>{{runInfo.kernels_mus_display[0]}} to {{runInfo.kernels_mus_display[runInfo.kernels_mus_display.length-1]}} & rest </span></span>
+                </div>
             </div>
         </div>
-        <div class="full-list" v-show="currentDisplayMode == 'list'">
+        <div class="full-list" v-if="currentDisplayMode == 'list'">
             <div class="document" v-for="(d,di) in documentData" :key="d.id">
-                <div class="head"><hr/><span v-bind:style="{display: d.judged_relevant ? 'inline-block': 'none'}">⭐</span><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span> Rest: {{d.val_log[2].toFixed(2)}}
-                <a @click="addToCompare(di)">Compare</a>
+                <div class="head"><hr v-if="di>0" /><span v-if="d.judged_relevant" class="star" title="Judged as relevant">⭐</span><span class="rank">{{di+1}}</span><span class="main-score"> <b>{{d.score.toFixed(2)}}</b> ({{(d.val_len[1]*runInfo['model_weights_log_len_mix'][1]).toFixed(2)}} & {{(d.val_log[1]*runInfo['model_weights_log_len_mix'][0]).toFixed(2)}})</span> <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1] * runInfo['model_weights_log_len_mix'][0]).toFixed(2)}} </span> <span>{{(d.val_log[2]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span>
+                <a class="compare-button" v-bind:class="{selected:di in comparing_documentDataIds}" @click="addToCompare(di)"><i class="far fa-clone"></i></a>
                 </div>
                 <div class="text">
                     <template v-for="(t,ti) in d.tokenized_document"><span :key="d.id + ti" v-bind:style="termStyle(documentData,di,ti)">{{t}}</span> <wbr :key="'br'+d.id + ti"/></template>
                 </div>
             </div>
         </div>
-        <div class="side-by-side" v-show="currentDisplayMode == 'side-by-side'">
+        <div class="side-by-side" v-if="currentDisplayMode == 'side-by-side'">
             <div class="document" v-bind:class="{left: di == 0,right: di == 1}" v-for="(d,di) in comparing_documentData" :key="d.id">
-                <div class="head"><hr/><span v-bind:style="{display: d.judged_relevant ? 'inline-block': 'none'}">⭐</span><span class="rank">{{di+1}}</span> {{d.score.toFixed(2)}} | {{d.val_len[1].toFixed(2)}} + {{d.val_log[1].toFixed(2)}} | <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} | </span>
+                <div class="head">
+                <template v-if="di == 0">
+                    <div class="legend"><span>Score</span><hr/><span>Len-score</span><span>Log-score</span><span><i>Kernels</i></span><span v-for="(k,ki) in runInfo.kernels_mus_display" :key="'k2'+ki" v-bind:class="{selected:highlight_mode == 'kernel' && ki in kernel_selected_indices}" @click="kernel_toggle_kernel(ki)">{{k}}</span></div>
+                    <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><span>{{(d.val_len[1]* runInfo['model_weights_log_len_mix'][1]).toFixed(2)}}</span><span>{{(d.val_log[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span></div>
+                    <div class="diffs"><UpDownScore v-bind:score1="comparing_documentData[0].score" v-bind:score2="comparing_documentData[1].score" maxDec="2" /><hr/><UpDownScore v-bind:score1="comparing_documentData[0].val_len[1]* runInfo['model_weights_log_len_mix'][1]" v-bind:score2="comparing_documentData[1].val_len[1]* runInfo['model_weights_log_len_mix'][1]" maxDec="2" /><UpDownScore v-bind:score1="comparing_documentData[0].val_log[1]* runInfo['model_weights_log_len_mix'][0]" v-bind:score2="comparing_documentData[1].val_log[1]* runInfo['model_weights_log_len_mix'][0]" maxDec="2" /> <br/> <UpDownScore v-for="i_mus in runInfo.kernels_mus_display.length" v-bind:key="'kdiffmus'+i_mus" v-bind:score1="comparing_documentData[0].val_log[0][i_mus-1][0] * comparing_documentData[0].val_log[0][i_mus-1][1]*runInfo['model_weights_log_len_mix'][0]" v-bind:score2="comparing_documentData[1].val_log[0][i_mus-1][0]*comparing_documentData[1].val_log[0][i_mus-1][1]*runInfo['model_weights_log_len_mix'][0]" maxDec="2" /></div>                   
+                </template>
+                <template v-if="di == 1">
+                    <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><span>{{(d.val_len[1]* runInfo['model_weights_log_len_mix'][1]).toFixed(2)}}</span><span>{{(d.val_log[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span></div>
+                </template>
                 </div>
                 <div class="text">
                     <template v-for="(t,ti) in d.tokenized_document"><span :key="d.id + ti" v-bind:style="termStyle(comparing_documentData,di,ti)">{{t}}</span> <wbr :key="'br'+d.id + ti"/></template>
@@ -63,6 +74,7 @@
 <script lang="ts">
 import Vue from "vue";
 import FetchHelper from "../fetch-helper";
+import UpDownScore from "./UpDownScore.vue";
 
 
 export default Vue.extend({
@@ -72,6 +84,8 @@ export default Vue.extend({
             headerHeight:0,
             documentData:<any[]>[],
             comparing_documentData:<any[]>[],
+            comparing_documentDataIds:<any[]>{},
+            comparing_diffData:{},
             tokenized_query:<string[]>[],
             highlight_mode:'qt',
             qt_selected_indices:<any>{},
@@ -90,14 +104,19 @@ export default Vue.extend({
         },
         goToList(){
             this.comparing_documentData.length=0
+            this.comparing_documentDataIds={}
                 this.currentDisplayMode = "list"
         },
         addToCompare(didx:number){
+            this.comparing_documentDataIds[didx]=1
             this.comparing_documentData.push(this.documentData[didx]);
             if(this.comparing_documentData.length == 2){
                 this.currentDisplayMode = "side-by-side"
                 this.showInfoBox=false
+
+                this.comparing_diffData["score"] = this.comparing_documentData[0].score - this.comparing_documentData[1].score;
             }
+            this.$forceUpdate()
         },
         toggle_highlight_mode(new_mode:string){
             this.highlight_mode = new_mode
@@ -200,6 +219,7 @@ export default Vue.extend({
                 this.kernel_selected_indices = {2:1}
                 this.documentData.length = 0
                 this.comparing_documentData.length = 0
+                this.comparing_documentDataIds= {}
                 this.currentDisplayMode = "list"
                 fetch("/query/"+newVal.qid)
                     .then(FetchHelper.status)
@@ -227,7 +247,8 @@ export default Vue.extend({
     },
     computed: {
         
-    }
+    },
+    components:{UpDownScore}
 });
 </script>
 
@@ -241,7 +262,6 @@ export default Vue.extend({
         position: fixed;
         background: white;
         top: 47px;
-        padding:10px;
         z-index: 100;
         width: 600px;
         .query{
@@ -260,6 +280,22 @@ export default Vue.extend({
             box-shadow: 2px 2px 8px #e6e6e6;
             padding: 10px;
             width: 400px;
+        }
+        .back-button{
+            width: 13px;
+            height: 18px;
+            display: inline-block;
+            text-align: center;
+            vertical-align: middle;
+            padding: 7px;
+            border-right: 1px solid #c7c7c7;
+            margin: -10px;
+            margin-right: 10px;
+            cursor: pointer;
+
+            &:hover{
+                color:blueviolet
+            }
         }
     }
     .controls{
@@ -281,7 +317,14 @@ export default Vue.extend({
             }
         }
         .line{
-            margin:10px;
+            padding: 10px 0;
+            &.center{
+                padding-left: 40px;
+            }
+            &.heading{
+                padding-top: 20px;
+                color: gray;
+            }
             .part-line{
                 display: inline-block;
                 position: relative;
@@ -317,6 +360,17 @@ export default Vue.extend({
                 &.selected .shadow{
                     display: none;
                 }
+            }
+
+            .rank{
+                margin-left:40px;
+                margin-right: 10px;
+            }
+            .main-score{
+                margin-right: 25px;
+            }
+            .kernels{
+
             }
             
         }
@@ -362,6 +416,7 @@ export default Vue.extend({
             margin: 10px 40px;
             hr{
                 border: 0.5px solid #dedede;
+                margin: 10px 0;
             }
             .rank {
                 border: 1px solid gray;
@@ -371,10 +426,25 @@ export default Vue.extend({
                 display: inline-block;
                 text-align: center;
                 font-weight:500;
+                    margin-right: 10px;
+            }
+            .main-score{
+                width: 145px;
+                display: inline-block;
+            }
+            .kernel-value{
+                margin:0 3px;
+                display: inline-block;
             }
             .kernel-value.selected{
                 font-weight: 500;
                 text-decoration: underline;
+            }
+            .star{
+                display: inline-block;
+                position: absolute;
+                margin-left: -30px;
+                cursor: default;
             }
         }
         .text{
@@ -383,6 +453,23 @@ export default Vue.extend({
                 padding:0 2px;
                 margin:0 1px;
                 border-radius:2px
+            }
+        }
+        .compare-button{
+            opacity: 0.3;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 20px;
+            &.selected{
+                opacity:1;
+                background: blueviolet;
+                border-radius: 2px;
+                color:white;
+            }
+        }
+        &:hover{
+            .compare-button{
+                opacity:1;
             }
         }
     }
@@ -398,27 +485,55 @@ export default Vue.extend({
         }
         .document{
             display: inline-block;
-            width: 590px;
+            width: 620px;
             vertical-align: top;
-
+            .head{
+                margin:0;
+            }
+            .legend{
+                width: 60px;
+                float: left;
+                span{
+                    display: block;
+                }
+            }
+            .values{
+                display: inline-block;
+                width: 50px;
+                text-align: right;
+                span{
+                    display: block;
+                }
+            }
+            .diffs{
+                float: right;
+                width:50px;
+                span{
+                    margin: 0;
+                    display: block;
+                }
+            }
             &.left{
                 .text{
-                    margin-right: 180px;
+                    margin-right: 220px;
                 }
                 .head{
                     float: right;
-                    width: 100px;
+                    width: 180px;
+                    margin-right:0;
                     text-align: left;
                 }
             }
             &.right{
+                width: 500px;
                 .text{
-                    margin-left: 180px;
+                    margin-left: 72px;
                 }
                 .head{
                     float: left;
-                    width: 100px;
+                    width: 60px;
                     text-align: left;
+                    margin-left: 0;
                 }
             }
         }

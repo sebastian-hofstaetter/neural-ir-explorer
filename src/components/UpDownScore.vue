@@ -4,10 +4,10 @@
         <i class="fas fa-exchange-alt"></i> 0
       </template>
       <template v-if="score1 - score2 > 0">
-        <i class="fas fa-plus-circle"></i> {{score1 - score2}}
+        <i class="fas fa-plus-circle"></i> {{lowerZero}}
       </template>
       <template v-if="score1 - score2 < 0">
-        <i class="fas fa-minus-circle"></i> {{-1 * (score1 - score2)}}
+        <i class="fas fa-minus-circle"></i> {{biggerZero}}
       </template>
     </span>
 </template>
@@ -16,7 +16,21 @@
 import Vue from "vue";
 
 export default Vue.extend({
-  props: ['score1', 'score2'],
+  props: ['score1', 'score2','maxDec'],
+  computed:{
+    lowerZero:function(){
+      if (this.maxDec != null){
+        return (this.score1 - this.score2).toFixed(this.maxDec)
+      }
+      return this.score1 - this.score2
+    },
+    biggerZero:function(){
+      if (this.maxDec != null){
+         return (-1 * (this.score1 - this.score2)).toFixed(this.maxDec)
+      }
+      return -1 * (this.score1 - this.score2)
+    },
+  }
 });
 </script>
 
