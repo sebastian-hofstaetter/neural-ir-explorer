@@ -221,7 +221,7 @@ export default Vue.extend({
                 this.comparing_documentData.length = 0
                 this.comparing_documentDataIds= {}
                 this.currentDisplayMode = "list"
-                fetch("/query/"+newVal.qid)
+                fetch("/query/"+this.runInfo.id+"/"+newVal.qid)
                     .then(FetchHelper.status)
                     .then(FetchHelper.json)
                     .then(data => {
@@ -257,7 +257,7 @@ export default Vue.extend({
     margin: auto;
     width: 600px;
     padding-top: 120px;
-
+    margin-top: 50px;
     .section-header{
         position: fixed;
         background: white;

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <query-cluster-list v-on:query-select="changeQuery" v-show="currentMainView == 'all-queries'"/>
+        <query-cluster-list v-bind:run-info="runInfo" v-on:query-select="changeQuery" v-show="currentMainView == 'all-queries'"/>
 
         <single-query-view v-bind:run-info="runInfo" v-on:back="currentMainView = 'all-queries'" v-show="currentMainView == 'single-query'" v-bind:query="currentSelectedQuery"/>
 

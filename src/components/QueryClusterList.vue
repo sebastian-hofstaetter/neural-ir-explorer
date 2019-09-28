@@ -25,7 +25,7 @@
           v-bind:class="{ active: collapsAll }"
           @click="collapsAll = !collapsAll"
         >
-          <i class="fas fa-tasks"></i> Collaps clusters
+          <i class="fas fa-tasks"></i> Collapse clusters
         </div>
         <div class="control-bar-element">
           <input class="prefix-filter" v-bind:class="{selected: prefixInput.length > 0}" v-model="prefixInput" placeholder="Prefix filter" />
@@ -102,6 +102,7 @@ function shuffle(a:any[]) {
 
 
 export default Vue.extend({
+  props: ['runInfo'],
   data() {
     var clusters: any = [];
     return {
@@ -187,37 +188,36 @@ export default Vue.extend({
       }
     }
   },
-  created: function() {
-    fetch("/evaluated-queries")
-      .then(FetchHelper.status)
-      .then(FetchHelper.json)
-      .then(data => {
-        for (var cid in data.clusters) {
-          this.maxCollapsCountPerCluster[cid] = this.maxCollapsCount;
-          this.clusters.push({ id: cid, data: data.clusters[cid] });
-          var queries = data.clusters[cid].queries
-          for(var i=0;i<queries.length;i++){
-            var current_q = queries[i];
-            var current_q_text = queries[i].text.split(" ");
-            for(var t=0;t<current_q_text.length;t++){
-                this.searchTrie.add(current_q_text[t],current_q.qid)
+  
+  watch: {
+    runInfo: function(newVal:any,oldVal:any) {
+      if(newVal.id == undefined){
+        return;
+      }
+      fetch("/evaluated-queries/"+newVal.id)
+        .then(FetchHelper.status)
+        .then(FetchHelper.json)
+        .then(data => {
+          this.clusters.length=0
+          this.searchTrie = new Triejs({enableCache:false,maxCache:5000})
+          for (var cid in data.clusters) {
+            this.maxCollapsCountPerCluster[cid] = this.maxCollapsCount;
+            this.clusters.push({ id: cid, data: data.clusters[cid] });
+            var queries = data.clusters[cid].queries
+            for(var i=0;i<queries.length;i++){
+              var current_q = queries[i];
+              var current_q_text = queries[i].text.split(" ");
+              for(var t=0;t<current_q_text.length;t++){
+                  this.searchTrie.add(current_q_text[t],current_q.qid)
+              }
             }
           }
-        }
-        this.filterCollapsed();
-      })
-      .catch(error => {
-        console.log(error);
-      });
-
-    this.$root.$on("server-change", (servers: AvailableConfiguration[]) => {
-      //this.availableConfigurations = servers;
-      //if (this.availableConfigurations.length == 1) {
-      //  this.addNewCompiled();
-      // }
-    });
-  },
-  watch: {
+          this.filterCollapsed();
+        })
+        .catch(error => {
+          console.log(error);
+        });
+      },
       prefixInput:function(newVal:string,oldVal:string) {
           if(newVal.length>1){
               this.searchFiltered = new Set(this.searchTrie.find(newVal));
@@ -293,7 +293,7 @@ export default Vue.extend({
   text-align: center;
   margin: 50px;
   margin-bottom: 10px;
-
+  margin-top: 100px;
   
   .cluster-card {
     display: inline-block;
