@@ -1,7 +1,7 @@
 <template>
-    <div class="run-info" v-bind:class="{open:showAll}">
+    <div class="run-info" v-bind:class="{open:showAll,selectable:availableRuns.length > 1}">
         <div class="run" @click="showAll=!showAll">
-             {{selectedRun.model_info}} @ {{selectedRun.test_collection}} <span><i class="fas fa-sort-down"></i></span>
+             {{selectedRun.model_info}} @ {{selectedRun.test_collection}} <span v-if="availableRuns.length > 1"><i class="fas fa-sort-down"></i></span>
         </div>
         <div class="dropdown" v-show="showAll">
         <div class="run" v-for="srv in availableRuns" v-if="srv!=selectedRun" :key="srv.model_info+srv.test_collection" @click="changeSelection(srv)">
@@ -59,7 +59,7 @@ export default Vue.extend({
   margin-bottom: -2px;
   position: relative;
 
-  &:hover, &.open{
+  &.selectable:hover, &.selectable.open{
     border-bottom:2px solid blueviolet;
     cursor: pointer;
   }

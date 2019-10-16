@@ -35,14 +35,22 @@
                 </div>
                 <div class="line heading" v-if="currentDisplayMode == 'list' && runInfo.kernels_mus_display != undefined">
                     <span class="rank">Rank</span>
-                    <span class="main-score">Score (length & log)</span>
-                    <span class="kernels">Log-Kernel scores: <span>{{runInfo.kernels_mus_display[0]}} to {{runInfo.kernels_mus_display[runInfo.kernels_mus_display.length-1]}} & rest </span></span>
+                    <span class="main-score" v-if="runInfo.score_type=='tk'">Score (length & log)</span>
+                    <span class="kernels" v-if="runInfo.score_type=='tk'">Log-Kernel scores: <span>{{runInfo.kernels_mus_display[0]}} to {{runInfo.kernels_mus_display[runInfo.kernels_mus_display.length-1]}} & rest </span></span>
+                    <span class="main-score" v-if="runInfo.score_type=='knrm'">Score</span>
+                    <span class="kernels" v-if="runInfo.score_type=='knrm'">Kernel scores: <span>{{runInfo.kernels_mus_display[0]}} to {{runInfo.kernels_mus_display[runInfo.kernels_mus_display.length-1]}} & rest </span></span>
                 </div>
             </div>
         </div>
         <div class="full-list" v-if="currentDisplayMode == 'list'">
             <div class="document" v-for="(d,di) in documentData" :key="d.id">
-                <div class="head"><hr v-if="di>0" /><span v-if="d.judged_relevant" class="star" title="Judged as relevant">⭐</span><span class="rank">{{di+1}}</span><span class="main-score"> <b>{{d.score.toFixed(2)}}</b> ({{(d.val_len[1]*runInfo['model_weights_log_len_mix'][1]).toFixed(2)}} & {{(d.val_log[1]*runInfo['model_weights_log_len_mix'][0]).toFixed(2)}})</span> <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1] * runInfo['model_weights_log_len_mix'][0]).toFixed(2)}} </span> <span>{{(d.val_log[2]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span>
+                <div class="head" ><hr v-if="di>0" /><span v-if="d.judged_relevant" class="star" title="Judged as relevant">⭐</span><span class="rank">{{di+1}}</span>
+                <template v-if="runInfo.score_type=='tk'">
+                    <span class="main-score"> <b>{{d.score.toFixed(2)}}</b> ({{(d.val_len[1]*runInfo['model_weights_log_len_mix'][1]).toFixed(2)}} & {{(d.val_log[1]*runInfo['model_weights_log_len_mix'][0]).toFixed(2)}})</span> <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1] * runInfo['model_weights_log_len_mix'][0]).toFixed(2)}} </span> <span>{{(d.val_log[2]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span>
+                </template>
+                <template v-if="runInfo.score_type=='knrm'">
+                    <span class="main-score single"> <b>{{d.score.toFixed(2)}}</b></span> <span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}} </span> <span>{{(d.val_log[2]).toFixed(2)}}</span>
+                </template>
                 <a class="compare-button" v-bind:class="{selected:di in comparing_documentDataIds}" @click="addToCompare(di)"><i class="far fa-clone"></i></a>
                 </div>
                 <div class="text">
@@ -53,14 +61,26 @@
         <div class="side-by-side" v-if="currentDisplayMode == 'side-by-side'">
             <div class="document" v-bind:class="{left: di == 0,right: di == 1}" v-for="(d,di) in comparing_documentData" :key="d.id">
                 <div class="head">
-                <template v-if="di == 0">
-                    <div class="legend"><span>Score</span><hr/><span>Len-score</span><span>Log-score</span><span><i>Kernels</i></span><span v-for="(k,ki) in runInfo.kernels_mus_display" :key="'k2'+ki" v-bind:class="{selected:highlight_mode == 'kernel' && ki in kernel_selected_indices}" @click="kernel_toggle_kernel(ki)">{{k}}</span></div>
-                    <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><span>{{(d.val_len[1]* runInfo['model_weights_log_len_mix'][1]).toFixed(2)}}</span><span>{{(d.val_log[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span></div>
-                    <div class="diffs"><UpDownScore v-bind:score1="comparing_documentData[0].score" v-bind:score2="comparing_documentData[1].score" maxDec="2" /><hr/><UpDownScore v-bind:score1="comparing_documentData[0].val_len[1]* runInfo['model_weights_log_len_mix'][1]" v-bind:score2="comparing_documentData[1].val_len[1]* runInfo['model_weights_log_len_mix'][1]" maxDec="2" /><UpDownScore v-bind:score1="comparing_documentData[0].val_log[1]* runInfo['model_weights_log_len_mix'][0]" v-bind:score2="comparing_documentData[1].val_log[1]* runInfo['model_weights_log_len_mix'][0]" maxDec="2" /> <br/> <UpDownScore v-for="i_mus in runInfo.kernels_mus_display.length" v-bind:key="'kdiffmus'+i_mus" v-bind:score1="comparing_documentData[0].val_log[0][i_mus-1][0] * comparing_documentData[0].val_log[0][i_mus-1][1]*runInfo['model_weights_log_len_mix'][0]" v-bind:score2="comparing_documentData[1].val_log[0][i_mus-1][0]*comparing_documentData[1].val_log[0][i_mus-1][1]*runInfo['model_weights_log_len_mix'][0]" maxDec="2" /></div>                   
-                </template>
-                <template v-if="di == 1">
-                    <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><span>{{(d.val_len[1]* runInfo['model_weights_log_len_mix'][1]).toFixed(2)}}</span><span>{{(d.val_log[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span></div>
-                </template>
+                    <template v-if="runInfo.score_type=='tk'">
+                        <template v-if="di == 0">
+                            <div class="legend"><span>Score</span><hr/><span>Len-score</span><span>Log-score</span><span><i>Kernels</i></span><span v-for="(k,ki) in runInfo.kernels_mus_display" :key="'k2'+ki" v-bind:class="{selected:highlight_mode == 'kernel' && ki in kernel_selected_indices}" @click="kernel_toggle_kernel(ki)">{{k}}</span></div>
+                            <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><span>{{(d.val_len[1]* runInfo['model_weights_log_len_mix'][1]).toFixed(2)}}</span><span>{{(d.val_log[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span></div>
+                            <div class="diffs"><UpDownScore v-bind:score1="comparing_documentData[0].score" v-bind:score2="comparing_documentData[1].score" maxDec="2" /><hr/><UpDownScore v-bind:score1="comparing_documentData[0].val_len[1]* runInfo['model_weights_log_len_mix'][1]" v-bind:score2="comparing_documentData[1].val_len[1]* runInfo['model_weights_log_len_mix'][1]" maxDec="2" /><UpDownScore v-bind:score1="comparing_documentData[0].val_log[1]* runInfo['model_weights_log_len_mix'][0]" v-bind:score2="comparing_documentData[1].val_log[1]* runInfo['model_weights_log_len_mix'][0]" maxDec="2" /> <br/> <UpDownScore v-for="i_mus in runInfo.kernels_mus_display.length" v-bind:key="'kdiffmus'+i_mus" v-bind:score1="comparing_documentData[0].val_log[0][i_mus-1][0] * comparing_documentData[0].val_log[0][i_mus-1][1]*runInfo['model_weights_log_len_mix'][0]" v-bind:score2="comparing_documentData[1].val_log[0][i_mus-1][0]*comparing_documentData[1].val_log[0][i_mus-1][1]*runInfo['model_weights_log_len_mix'][0]" maxDec="2" /></div>                   
+                        </template>
+                        <template v-if="di == 1">
+                            <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><span>{{(d.val_len[1]* runInfo['model_weights_log_len_mix'][1]).toFixed(2)}}</span><span>{{(d.val_log[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]* runInfo['model_weights_log_len_mix'][0]).toFixed(2)}}</span></div>
+                        </template>
+                    </template>
+                    <template v-if="runInfo.score_type=='knrm'">
+                        <template v-if="di == 0">
+                            <div class="legend"><span>Score</span><hr/><span><i>Kernels</i></span><span v-for="(k,ki) in runInfo.kernels_mus_display" :key="'k2'+ki" v-bind:class="{selected:highlight_mode == 'kernel' && ki in kernel_selected_indices}" @click="kernel_toggle_kernel(ki)">{{k}}</span></div>
+                            <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}}</span></div>
+                            <div class="diffs"><UpDownScore v-bind:score1="comparing_documentData[0].score" v-bind:score2="comparing_documentData[1].score" maxDec="2" /><hr/><br/><UpDownScore v-for="i_mus in runInfo.kernels_mus_display.length" v-bind:key="'kdiffmus'+i_mus" v-bind:score1="comparing_documentData[0].val_log[0][i_mus-1][0] * comparing_documentData[0].val_log[0][i_mus-1][1]" v-bind:score2="comparing_documentData[1].val_log[0][i_mus-1][0]*comparing_documentData[1].val_log[0][i_mus-1][1]" maxDec="2" /></div>                   
+                        </template>
+                        <template v-if="di == 1">
+                            <div class="values"><span>{{d.score.toFixed(2)}}</span><hr/><br/><span class="kernel-value" v-bind:class="{selected: highlight_mode == 'kernel' && ker_index in kernel_selected_indices}" v-for="(kernel_score,ker_index) in d.val_log[0]" :key="'ks'+ker_index">{{(kernel_score[0] * kernel_score[1]).toFixed(2)}}</span></div>
+                        </template>
+                    </template>
                 </div>
                 <div class="text">
                     <template v-for="(t,ti) in d.tokenized_document"><span :key="d.id + ti" v-bind:style="termStyle(comparing_documentData,di,ti)">{{t}}</span> <wbr :key="'br'+d.id + ti"/></template>
@@ -431,6 +451,9 @@ export default Vue.extend({
             .main-score{
                 width: 145px;
                 display: inline-block;
+                &.single{
+                    width: 57px;
+                }
             }
             .kernel-value{
                 margin:0 3px;

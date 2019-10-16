@@ -6,6 +6,7 @@ from flask import jsonify
 import csv
 import numpy
 from bling_fire_tokenizer import BlingFireTokenizer
+import yaml
 
 app = Flask(__name__, static_url_path='')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -14,34 +15,11 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 # data loading & prep
 #
 
-runs=[{
-    "run-info":{"id":0,
-                "test_collection":"MSMARCO-Passage (Dev)",
-                "model_info":"TK using 2 Transformer layers",
-                "score_type":"kernel",
-                "kernels_mus":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1, -0.3, -0.5, -0.7, -0.9],
-                "kernels_mus_display":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1],
-                "rest-kernels-last":4},
-    "collection":"C:\\Users\\sebas\\data\\msmarco\\collection\\collection-fixed.tsv",
-    "queries":"C:\\Users\\sebas\\data\\wsdm20\\analysis\\clustering_queries.csv",
-    "secondary-output":"C:\\Users\\sebas\\data\\\wsdm20\\secondary-end-top1000.npz",
-    "cluster-stats":"C:\\Users\\sebas\\data\\\wsdm20\\analysis\\clustering_statistics.csv",
-    "qrels":"C:\\Users\\sebas\\data\\msmarco\\qrels.dev.tsv"
-},
-{
-    "run-info":{"id":1,
-                "test_collection":"MSMARCO-Passage (TREC 2019)",
-                "model_info":"TK using 2 Transformer layers",
-                "score_type":"kernel",
-                "kernels_mus":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1, -0.3, -0.5, -0.7, -0.9],
-                "kernels_mus_display":[1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1],
-                "rest-kernels-last":4},
-    "collection":"C:\\Users\\sebas\\data\\msmarco\\collection\\collection-fixed.tsv",
-    "queries":"C:\\Users\\sebas\\data\\trec2019-evaluation\\clustering_queries.csv",
-    "secondary-output":"C:\\Users\\sebas\\data\\trec2019-evaluation\\secondary-leaderboard2019_full_rank.npz",
-    "cluster-stats":"C:\\Users\\sebas\\data\\trec2019-evaluation\\clustering_statistics.csv",
-    "qrels":"C:\\Users\\sebas\\data\\msmarco\\trec2019-qrels-pass.txt"
-}]
+with open(os.environ.get("RUN_CONFIG"), 'r') as ymlfile:
+    yaml_cfg = yaml.load(ymlfile)
+
+runs = yaml_cfg["runs"]
+
 max_doc_char_length = 100_000
 
 def load_qrels(path):
@@ -109,7 +87,11 @@ for run in runs:
     secondary_model.append(secondary.get("model_data")[()])
     secondary_qd.append(secondary.get("qd_data")[()])
 
-    run["run-info"]["model_weights_log_len_mix"] = secondary.get("model_data")[()]["dense_comb_weight"][0].tolist()
+    if run["run-info"]["score_type"]=="tk":
+        run["run-info"]["model_weights_log_len_mix"] = secondary.get("model_data")[()]["dense_comb_weight"][0].tolist()
+
+import gc
+gc.collect()
 
 #
 # api endpoints
@@ -137,7 +119,7 @@ def query(qid,run):
 
     for doc in secondary_qd[run][qid]:
 
-        documents.append(get_document_info(qid,doc,secondary_qd[run][qid][doc],run))
+        documents.append(get_document_info(runs[run]["run-info"]["score_type"],qid,doc,secondary_qd[run][qid][doc],run))
 
     return jsonify(documents=documents)
 
@@ -179,12 +161,15 @@ def analyze_weighted_param_1D(name,values, param_weight,bias=None,last_x=5):
     return (kernels, float(rolling_sum),float(rolling_sum_after_x))
 
 
-def get_document_info(qid,did,secondary_info,run):
+def get_document_info(score_type,qid,did,secondary_info,run):
 
     document_info = {"id":float(did),"score":float(secondary_info["score"]),"judged_relevant": did in qrels[run][qid]}
 
-    document_info["val_log"] = analyze_weighted_param_1D("log-kernels",secondary_info["per_kernel"],secondary_model[run]["dense_weight"][0],last_x=runs[run]["run-info"]["rest-kernels-last"])
-    document_info["val_len"] = analyze_weighted_param_1D("len-norm-kernels",secondary_info["per_kernel_mean"],secondary_model[run]["dense_mean_weight"][0],last_x=runs[run]["run-info"]["rest-kernels-last"])
+    if score_type == "tk":
+        document_info["val_log"] = analyze_weighted_param_1D("log-kernels",secondary_info["per_kernel"],secondary_model[run]["dense_weight"][0],last_x=runs[run]["run-info"]["rest-kernels-last"])
+        document_info["val_len"] = analyze_weighted_param_1D("len-norm-kernels",secondary_info["per_kernel_mean"],secondary_model[run]["dense_mean_weight"][0],last_x=runs[run]["run-info"]["rest-kernels-last"])
+    if score_type == "knrm":
+        document_info["val_log"] = analyze_weighted_param_1D("log-kernels",secondary_info["per_kernel"],secondary_model[run]["kernel_weight"][0],last_x=runs[run]["run-info"]["rest-kernels-last"])
 
     document_info["tokenized_query"] = tokenizer.tokenize(queries[run][qid])
     document_info["tokenized_document"] = tokenizer.tokenize(collection[run][did])

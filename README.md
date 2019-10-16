@@ -9,6 +9,7 @@ Features:
 
 ## Run the web-server
 
+set RUN_CONFIG=config_knrm.py
 set FLASK_APP=api.py
 flask run
 

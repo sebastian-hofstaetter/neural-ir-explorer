@@ -12,7 +12,7 @@ let v = new Vue({
         <header><div class="inner-header"><i class="fas fa-search"></i> neural-ir-explorer &ndash; <run-info-box @run-changed="(x) => {currentRun = x}" /></div></header>
         <splash-screen v-bind:run-info="currentRun" v-if="currentMainView == 'splash'" @all-done="currentMainView = 'explore'"/>
         <explore-view v-bind:run-info="currentRun" v-show="currentMainView == 'explore'"/>
-        <footer><div class="inner-footer"> Made with <i class="fa fa-heart"></i> - Demo under review at ECIR </div></footer>
+        <footer><div class="inner-footer"> Made with <i class="fa fa-heart"></i> by Sebastian Hofstätter &ndash; <a href="https://github.com/sebastian-hofstaetter/neural-ir-explorer">Source code on GitHub</a> </div></footer>
     </div>
     `,
     data(){

@@ -49,9 +49,9 @@
       </div>
       <div class="cluster-card" v-for="c in filteredClusters" :key="c.cluster">
         <div class="cluster-info">
-          <span class="score">{{parseInt(c.tk_med)}}</span>
-          <up-down-score v-bind:score2="c.tk_med" v-bind:score1="c.bm25_med" />
-          <span class="summary">{{c.summary}}</span>
+          <span class="score">{{parseInt(c.model_med)}}</span>
+          <up-down-score v-bind:score2="c.model_med" v-bind:score1="c.bm25_med" />
+          <span class="summary">{{c.summary}} </span> <!--#{{c.cluster}} -->
         </div>
           
         <template v-for="q in c.queries" >
@@ -59,8 +59,8 @@
               class="query"
               :key="q.qid"
               @click="indicateChange(q)">
-                <span class="score">{{q.rank_tk}}</span>
-                <up-down-score v-bind:score2="q.rank_tk" v-bind:score1="q.bm25_rank" />
+                <span class="score">{{q.rank_model}}</span>
+                <up-down-score v-bind:score2="q.rank_model" v-bind:score1="q.bm25_rank" />
                 <span class="text">{{q.text}}</span>
             </div><br :key="q.qid+'br'"/>
         </template>
@@ -139,16 +139,16 @@ export default Vue.extend({
     },
     sortAll(){
         const compareCluster = (a:any, b:any) => {
-          var a_float = parseInt(a.data.tk_med)
-          var b_float = parseInt(b.data.tk_med)
+          var a_float = parseInt(a.data.model_med)
+          var b_float = parseInt(b.data.model_med)
           var base = this.sortBy == "asc" ? -1 : 1;
           if (a_float < b_float) return -1 * base;
           if (a_float > b_float) return 1 * base;
           return 0;
         }
         const compareQueries = (a:any, b:any) => {
-          var a_float = parseInt(a.rank_tk)
-          var b_float = parseInt(b.rank_tk)
+          var a_float = parseInt(a.rank_model)
+          var b_float = parseInt(b.rank_model)
           var base = this.sortBy == "asc" ? -1 : 1;
           if (a_float < b_float) return -1 * base;
           if (a_float > b_float) return 1 * base;

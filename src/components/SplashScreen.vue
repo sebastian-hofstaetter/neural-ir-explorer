@@ -8,37 +8,54 @@
           It (hopefully) enables you to gain new insights about how a neural model makes ranking decicions and how a test collection is composed (both the types of queries and the ranking judgements)
           With the Neural-IR-Explorer you can highlight and view temporary results, such as the similarities between query and document terms for the returned list of documents per query.
         </p>
-        <p>
-          This demo features the TK (Transformer-Kernel) model: a novel re-ranking model, which employs efficient contextualization to provide strong effectiveness results in time-constrained applications. 
-          We applied TK on the MSMARCO-Passage (Dev) test collection. 
-        </p>
         <ReRankingOverview class="ranking-overview" />
         <span class="fig-caption">Figure 1: Re-ranking overview workflow between first stage and re-ranking model</span>
         <p>Before we start exploring, let's take a quick look at the workflow shown in Figure 1. Typically, for efficiency, neural retrieval models depend on a candidate selection of documents.
-           This candidate selection is provided by a traditional retrieval model (BM25 based on inverted index statistics). Therefore, in the result view of the Neural-IR-Explorer we compare the neural model results with the first stage baseline baseline. 
+           This candidate selection is provided by a traditional retrieval model (BM25 based on inverted index statistics). Therefore, in the result view of the Neural-IR-Explorer we compare the neural model results with the first stage baseline. 
            Keep in mind that this setup means that the neural model operates in a constrained environment and the requirements may differ from a full-collection retrieval.
            For a more comprehensive overview, we suggest the recent survey work by <a target="blank" href="https://www.microsoft.com/en-us/research/publication/introduction-neural-information-retrieval/">Mitra et al.</a></p>
-        <div><span class="skip-button" @click="$emit('all-done')">Take me to the action!</span><span class="next-button" @click="currentScreenIdx=1">Next: The TK re-ranking model</span></div>
+        <div><span class="skip-button" @click="$emit('all-done')">Take me to the action!</span><span class="next-button" @click="currentScreenIdx=1">Next: The neural re-ranking model</span></div>
       </div>
 
       <div class="splash-card" v-if="currentScreenIdx==1">
-        <h2>TK: The Transformer-Kernel Model</h2>
-        <p>
-          Search engines operate under a strict time constraint as a fast response is paramount to user satisfaction. Thus, neural re-ranking models have a limited time-budget to re-rank documents. 
-          Given the same amount of time, a faster re-ranking model can incorporate more documents than a less efficient one, leading to a higher effectiveness. 
-          To utilize this property, we propose TK (Transformer-Kernel): a neural re-ranking model for ad-hoc search using an efficient contextualization mechanism. 
-          TK employs a very small number of Transformer layers (up to three) to contextualize query and document word embeddings. 
-          To score individual term interactions, we use a document-length enhanced kernel-pooling, which enables users to gain insight into the model. 
-          TK offers an optimal ratio between effectiveness and efficiency: under realistic time constraints (maximum of 200 ms per query) TK achieves the highest effectiveness in comparison to BERT and other re-ranking models.
-          The Neural-IR-Explorer is meant to complement metrics based results found in the TK paper <a target="blank" href="https://arxiv.org">on arXiv</a> (there is also a cool time-budget aware evaluation of neural IR models in there 👌)</p>
-        
-        </p>
-        <TkArchitecture class="tk-arch" />
-        <span class="fig-caption">Figure 2: TK model overview</span>
-        <p>We employ a small number of Transformer layers (we evaluate up to three) to contextualize query and document word embeddings.
-           We score the interactions of the contextualized representations with simple, yet effective soft-histograms based on the kernel-pooling technique. 
-           Additionally, we enhance kernel-pooling with document length normalization.
-        <div><span class="next-button" @click="$emit('all-done')">Let's go!</span></div>
+        <template v-if="runInfo.score_type == 'tk'">
+          <h2>TK: The Transformer-Kernel Model</h2>
+          <p>
+            Search engines operate under a strict time constraint as a fast response is paramount to user satisfaction. Thus, neural re-ranking models have a limited time-budget to re-rank documents. 
+            Given the same amount of time, a faster re-ranking model can incorporate more documents than a less efficient one, leading to a higher effectiveness. 
+            To utilize this property, we propose TK (Transformer-Kernel): a neural re-ranking model for ad-hoc search using an efficient contextualization mechanism. 
+            TK employs a very small number of Transformer layers (up to three) to contextualize query and document word embeddings. 
+            To score individual term interactions, we use a document-length enhanced kernel-pooling, which enables users to gain insight into the model. 
+            TK offers an optimal ratio between effectiveness and efficiency: under realistic time constraints (maximum of 200 ms per query) TK achieves the highest effectiveness in comparison to BERT and other re-ranking models.
+            The Neural-IR-Explorer is meant to complement metrics based results found in the TK paper <a target="blank" href="https://arxiv.org">on arXiv</a> (there is also a cool time-budget aware evaluation of neural IR models in there 👌)</p>
+
+          <TkArchitecture class="tk-arch" />
+          <span class="fig-caption">Figure 2: TK model overview</span>
+          <p>We employ a small number of Transformer layers (we evaluate up to three) to contextualize query and document word embeddings.
+             We score the interactions of the contextualized representations with simple, yet effective soft-histograms based on the kernel-pooling technique. 
+             Additionally, we enhance kernel-pooling with document length normalization.
+          <div><span class="next-button" @click="$emit('all-done')">Let's go!</span></div>
+        </template>
+        <template v-if="runInfo.score_type == 'knrm'">
+          <h2>KNRM: Kernel-pooling based re-ranking</h2>
+          <p>
+            <i style="color:gray">Chenyan Xiong, Zhuyun Dai, Jamie Callan, Zhiyuan Liu, and Russell Power. 2017. End-to-End Neural Ad-hoc Ranking with Kernel Pooling. In Proc. of SIGIR.</i>
+            <ul>
+              <li>KNRM: Kernel based Neural Ranking Model</li>
+              <li>Counts the amount of different similarities between the query and document</li>
+              <li>Very few learnable parameters (other than the embedding)</li>
+              <li>Very fast – there is no complicated architecture increasing the runtime</li>
+            </ul>
+          </p>
+          <KnrmArchitecture class="knrm-arch" />
+          <span class="fig-caption">Figure 2: KNRM model overview</span>
+          <p>
+            The original paper is available <a target="blank" href="https://arxiv.org/pdf/1706.06613.pdf">on arXiv</a>.
+            More information can also be found in our IR course slides <a target="blank" href="https://github.com/sebastian-hofstaetter/teaching/tree/master/advanced-information-retrieval/lectures">on GitHub</a>.
+          </p>
+
+          <div><span class="next-button" @click="$emit('all-done')">Let's go!</span></div>
+        </template>
       </div>
 
     </div>
@@ -51,6 +68,7 @@ import FetchHelper from "../fetch-helper";
 
 import ReRankingOverview from '../figures/re-ranking-overview.svg';
 import TkArchitecture from '../figures/tk_architecture.svg';
+import KnrmArchitecture from '../figures/knrm_architecture.svg';
 
 export default Vue.extend({
   props: ['runInfo'],
@@ -65,7 +83,7 @@ export default Vue.extend({
   created: function() {
 
   },
-  components:{ReRankingOverview,TkArchitecture}
+  components:{ReRankingOverview,TkArchitecture,KnrmArchitecture}
 });
 </script>
 
@@ -75,7 +93,8 @@ export default Vue.extend({
   max-width: 600px;
   margin: auto;
   text-align: center;
-
+  margin-top: 60px;
+  
   .splash-card{
     h1,h2{
       font-weight: 500;
@@ -133,6 +152,53 @@ export default Vue.extend({
 	.st14 {fill:#7030a0;font-size:1.00001em}
 	.st15 {stroke:#c514ae;stroke-width:1}
 	.st16 {stroke:#7f7f7f;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+}
+
+.knrm-arch{
+.st1 {fill:#90aadb;fill-opacity:0.17;stroke:#305497;stroke-dasharray:0.01,2.5;stroke-width:0.5}
+		.st2 {marker-end:url(#mrkr1-10);stroke:#7f7f7f;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st3 {fill:#7f7f7f;fill-opacity:1;stroke:#7f7f7f;stroke-opacity:1;stroke-width:0.28409090909091}
+		.st4 {fill:#fff2cc;stroke:none;stroke-width:0.25}
+		.st5 {fill:#ffd965;stroke:none;stroke-width:0.25}
+		.st6 {fill:#fbe5d5;stroke:none;stroke-width:0.25}
+		.st7 {fill:#f4b183;stroke:none;stroke-width:0.25}
+		.st8 {fill:none;stroke:none;stroke-width:0.25}
+		.st9 {fill:#a5a5a5;font-family:Calibri;font-size:0.75em}
+		.st10 {fill:#7f7f7f;font-family:Calibri;font-size:1.00001em}
+		.st11 {marker-end:url(#mrkr1-66);stroke:#d8d8d8;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5}
+		.st12 {fill:#d8d8d8;fill-opacity:1;stroke:#d8d8d8;stroke-opacity:1;stroke-width:0.25773195876289}
+		.st13 {fill:#7030a0;stroke:none;stroke-width:0.25}
+		.st14 {marker-end:url(#mrkr1-74);stroke:#7f7f7f;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st15 {fill:#7f7f7f;fill-opacity:1;stroke:#7f7f7f;stroke-opacity:1;stroke-width:0.40983606557377}
+		.st16 {fill:#e2efd9;stroke:none;stroke-width:0.25}
+		.st17 {fill:#a8d08d;stroke:none;stroke-width:0.25}
+		.st18 {fill:#538135;stroke:none;stroke-width:0.25}
+		.st19 {fill:#bdd0e9;stroke:#305497;stroke-width:0.75}
+		.st20 {stroke:#002060;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st21 {fill:none;stroke:#305497;stroke-width:0.75}
+		.st22 {fill:#000000;font-family:Calibri Light;font-size:1.16666em}
+		.st23 {fill:#dae2f3;stroke:none;stroke-width:0.25}
+		.st24 {fill:#759fcc;stroke:none;stroke-width:0.25}
+		.st25 {fill:none;stroke:#000000;stroke-width:0.25}
+		.st26 {fill:#a5a5a5;font-family:Calibri Light;font-size:0.75em}
+		.st27 {fill:#d8d8d8;stroke:none;stroke-width:0.25}
+		.st28 {fill:#595959;stroke:none;stroke-width:0.25}
+		.st29 {fill:#a5a5a5;stroke:none;stroke-width:0.25}
+		.st30 {marker-start:url(#mrkr1-167);stroke:#7f7f7f;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st31 {fill:#e3c9f8;stroke:none;stroke-width:0.25}
+		.st32 {stroke:#7030a0;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st33 {fill:#000000;font-family:Calibri;font-size:0.75em}
+		.st34 {fill:#7f7f7f;font-family:Calibri;font-size:0.833336em}
+		.st35 {stroke:#ed7d31;stroke-width:1}
+		.st36 {fill:#ed7d31;font-family:Calibri;font-size:0.666664em}
+		.st37 {stroke:#70ad47;stroke-width:1}
+		.st38 {fill:#70ad47;font-family:Calibri;font-size:0.666664em}
+		.st39 {stroke:#4672c4;stroke-width:1}
+		.st40 {fill:#305497;font-family:Calibri;font-size:0.666664em}
+		.st41 {fill:#000000;font-family:Latin Modern Math;font-size:0.833336em;font-style:italic}
+		.st42 {stroke:#7030a0;stroke-width:1}
+		.st43 {fill:#7030a0;font-family:Calibri;font-size:0.666664em}
+		fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3
 }
 
 .tk-arch{
