@@ -2,34 +2,6 @@ runs:
   - "run-info":
         "id": 0
         "test_collection": "MSMARCO-Passage (Dev)"
-        "model_info": "TK using 2 Transformer layers"
-        "score_type": "tk"
-        "kernels_mus": [1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1, -0.3, -0.5, -0.7, -0.9]
-        "kernels_mus_display": [1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1]
-        "rest-kernels-last": 4
-    "collection": "C:\\Users\\sebas\\data\\msmarco\\collection\\collection-fixed.tsv"
-    "queries": "C:\\Users\\sebas\\data\\ecir20\\tk_msmarcodev_clustering_queries.csv"
-    "secondary-output": "C:\\Users\\sebas\\data\\ecir20\\tk_msmarcodev_secondary-end-top1000.npz"
-    "cluster-stats": "C:\\Users\\sebas\\data\\ecir20\\tk_msmarcodev_clustering_statistics.csv"
-    "qrels": "C:\\Users\\sebas\\data\\msmarco\\qrels.dev.tsv"
-
-  - "run-info":
-        "id": 1
-        "test_collection": "MSMARCO-Passage (TREC 2019)"
-        "model_info": "TK using 2 Transformer layers"
-        "score_type": "tk"
-        "kernels_mus": [1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1, -0.3, -0.5, -0.7, -0.9]
-        "kernels_mus_display": [1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1]
-        "rest-kernels-last": 4
-    "collection": "C:\\Users\\sebas\\data\\msmarco\\collection\\collection-fixed.tsv"
-    "queries": "C:\\Users\\sebas\\data\\ecir20\\tk_msmarcotrec19_clustering_queries.csv"
-    "secondary-output": "C:\\Users\\sebas\\data\\ecir20\\tk_msmarcotrec19_secondary-leaderboard2019_full_rank.npz"
-    "cluster-stats": "C:\\Users\\sebas\\data\\ecir20\\tk_msmarcotrec19_clustering_statistics.csv"
-    "qrels": "C:\\Users\\sebas\\data\\msmarco\\trec2019-qrels-pass.txt"
-
-  - "run-info":
-        "id": 2
-        "test_collection": "MSMARCO-Passage (Dev)"
         "model_info": "KNRM"
         "score_type": "knrm"
         "kernels_mus": [1.0, 0.9, 0.7, 0.5, 0.3, 0.1, -0.1, -0.3, -0.5, -0.7, -0.9]

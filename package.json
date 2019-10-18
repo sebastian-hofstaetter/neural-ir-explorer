@@ -5,29 +5,32 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-dev-server",
-    "build": "webpack",
+    "build": "webpack --display-modules",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sebastian Hofstaetter",
   "license": "Apache 2.0",
   "devDependencies": {
-    "@fortawesome/fontawesome-free": "^5.10.1",
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "@fortawesome/fontawesome-free": "^5.11.2",
+    "babel-loader": "^8.0.6",
     "css-loader": "^3.2.0",
     "file-loader": "^4.2.0",
     "node-sass": "^4.12.0",
     "sass-loader": "^7.3.1",
-    "ts-loader": "^6.0.4",
-    "typescript": "^3.5.3",
+    "ts-loader": "^6.2.0",
+    "typescript": "^3.6.4",
     "vue": "^2.6.10",
     "vue-loader": "^15.7.1",
     "vue-svg-loader": "^0.12.0",
     "vue-template-compiler": "^2.6.10",
-    "webpack": "^4.39.2",
-    "webpack-cli": "^3.3.7",
-    "webpack-dev-server": "^3.8.0"
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2"
   },
   "dependencies": {
-    "@vue/cli": "^3.10.0",
+    "@vue/cli": "^3.12.0",
     "axios": "^0.19"
   }
 }

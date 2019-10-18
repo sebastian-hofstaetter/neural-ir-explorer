@@ -23,7 +23,7 @@ let v = new Vue({
     },
     components: {
         ExploreView,
-        SplashScreen,
+        SplashScreen, 
         RunInfoBox
     },
 });

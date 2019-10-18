@@ -39,21 +39,17 @@
         <template v-if="runInfo.score_type == 'knrm'">
           <h2>KNRM: Kernel-pooling based re-ranking</h2>
           <p>
-            <i style="color:gray">Chenyan Xiong, Zhuyun Dai, Jamie Callan, Zhiyuan Liu, and Russell Power. 2017. End-to-End Neural Ad-hoc Ranking with Kernel Pooling. In Proc. of SIGIR.</i>
-            <ul>
-              <li>KNRM: Kernel based Neural Ranking Model</li>
-              <li>Counts the amount of different similarities between the query and document</li>
-              <li>Very few learnable parameters (other than the embedding)</li>
-              <li>Very fast – there is no complicated architecture increasing the runtime</li>
-            </ul>
+            <i style="color:gray">Chenyan Xiong, Zhuyun Dai, Jamie Callan, Zhiyuan Liu, and Russell Power. 2017. End-to-End Neural Ad-hoc Ranking with Kernel Pooling. In Proc. of SIGIR.</i><br/>
+            The KNRM (Kernel-based Neural Ranking) model counts the amount of different similarities between the query and document term representations via a differentiable soft-histogram (Gaussian kernel functions).
+            It has very few learnable parameters (other than the embedding) &ndash; only the kernel bin weights are trained. Therefore, KNRM is very fast as there is no complicated architecture increasing the runtime.
           </p>
           <KnrmArchitecture class="knrm-arch" />
           <span class="fig-caption">Figure 2: KNRM model overview</span>
           <p>
+            The single cosine interaction matrix allows to inspect the model at this point. In this demo we make use of this fact to highlight exactly those interactions as well as the internal kernel scores before summing them up to the final score
             The original paper is available <a target="blank" href="https://arxiv.org/pdf/1706.06613.pdf">on arXiv</a>.
             More information can also be found in our IR course slides <a target="blank" href="https://github.com/sebastian-hofstaetter/teaching/tree/master/advanced-information-retrieval/lectures">on GitHub</a>.
           </p>
-
           <div><span class="next-button" @click="$emit('all-done')">Let's go!</span></div>
         </template>
       </div>
